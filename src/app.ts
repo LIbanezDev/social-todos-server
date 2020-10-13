@@ -45,7 +45,7 @@ app.get('/', async function (req: express.Request, res: express.Response) {
     })
 })
 
-app.listen(3000, () => {
+app.listen(process.env.PORT || 3000, () => {
     console.log('Listening port 3000')
 })
 
