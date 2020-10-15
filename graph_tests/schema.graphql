@@ -1,0 +1,67 @@
+# This file was generated based on ".graphqlconfig". Do not edit manually.
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+interface IMutationResponse {
+    errors: MutationError
+    msg: String
+    ok: Boolean!
+}
+
+type Author {
+    id: ID!
+    name: String!
+    photos: [Photo!]!
+}
+
+type Mutation {
+    createPhoto(data: PhotoData!): PhotoResponse!
+}
+
+type MutationError {
+    msg: String
+    path: String
+}
+
+type Photo {
+    author: Author
+    description: String!
+    filename: String!
+    id: ID!
+    isPublished: Boolean!
+    name: String!
+    views: Float!
+}
+
+type PhotoResponse implements IMutationResponse {
+    errors: MutationError
+    msg: String
+    ok: Boolean!
+    photo: Photo
+}
+
+type PhotosResponse implements IMutationResponse {
+    errors: MutationError
+    msg: String
+    ok: Boolean!
+    photos: [Photo!]!
+}
+
+type Query {
+    authors: [Author!]!
+    jwt: String!
+    photo(ID: String!): PhotoResponse!
+    photos: PhotosResponse!
+}
+
+"Informacion necesaria para agregar fotos!"
+input PhotoData {
+    actorID: Float!
+    description: String!
+    filename: String!
+    isPublished: Boolean!
+    name: String!
+}
