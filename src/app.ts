@@ -1,51 +1,75 @@
+import "reflect-metadata";
 import express from 'express'
-import PersonaNode, {IPersona} from "./PersonaNode";
-import LinkedList from "./LinkedList";
 import bodyParser from "body-parser";
+import {createConnection} from "typeorm";
+import {PhotoResolver} from "./resolvers/PhotoResolver";
+import {buildSchema, ForbiddenError} from "type-graphql";
+import {ApolloServer} from "apollo-server-express";
+import {AuthorResolver} from "./resolvers/AuthorResolver";
+import jwt from 'express-jwt';
+import {authChecker} from "./auth/AuthChecker";
+import {Context} from "./types/graphql";
 
-const app: express.Application = express()
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended: false}))
-app.post('/api', (req: express.Request, res: express.Response) => {
+class App {
 
-    res.send({
-        data: {
-            test: "Hola",
-            ...req.params,
-            ...req.body
-        }
-    })
-})
+    private readonly app: express.Application = express()
+    private readonly port: string | number = process.env.PORT || 3000
+    private readonly path: string = "/graphql"
 
-app.get('/', async function (req: express.Request, res: express.Response) {
+    setJwtMiddleware(): void {
+        this.app.use(this.path,
+            jwt({
+                secret: 'TypeGraphQL',
+                credentialsRequired: false,
+                algorithms: ['sha1', 'RS256', 'HS256'],
+            })
+        )
+    }
 
-    const user_one = new PersonaNode({
-        id: 1,
-        name: "Lucas",
-        bornDate: "18/01/2001",
-        age: 19
-    }, null)
+    setParser(): void {
+        this.app.use(bodyParser.json())
+        this.app.use(bodyParser.urlencoded({extended: false}))
+    }
 
-    const user_two = new PersonaNode({
-        id: 2,
-        name: "Lucas Two",
-        bornDate: "18/01/2002",
-        age: 20
-    }, null)
+    async getApolloGraphServer(): Promise<ApolloServer> {
+        const schema = await buildSchema({
+            resolvers: [PhotoResolver, AuthorResolver],
+            authChecker
+        });
+        return new ApolloServer({
+            schema,
+            introspection: true,
+            playground: true,
+            formatError(error) {
+                if (error.originalError instanceof ForbiddenError) {
+                    return new Error('No estas autenticado, verifica el token de acceso.');
+                }
+                return error
+            },
+            context: ({req}: any) => {
+                const context: Context = {
+                    req,
+                    user: req.user
+                }
+                return context
+            }
+        })
+    }
 
-    user_one.next = user_two
-    const linkedPersonas = new LinkedList(user_one)
-    const size: number = linkedPersonas.size()
-    const last: any = linkedPersonas.getLast()
-    const first: PersonaNode | null = linkedPersonas.getFirst()
-    res.status(200).json({
-        listSize: size,
-        first: first?.data,
-        last: last?.data
-    })
-})
+    async start(): Promise<void> {
+        await createConnection()
+        this.setParser()
+        this.setJwtMiddleware()
+        const apolloServer = await this.getApolloGraphServer()
+        apolloServer.applyMiddleware({app: this.app, path: this.path})
+        this.app.listen(this.port, () => {
+            console.log('Listening port ' + this.port)
+        })
+    }
+}
 
-app.listen(process.env.PORT || 3000, () => {
-    console.log('Listening port 3000')
-})
+const app = new App()
+app.start()
+
+
 
