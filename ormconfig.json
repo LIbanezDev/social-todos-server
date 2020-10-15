@@ -1,0 +1,24 @@
+{
+   "type": "mysql",
+   "host": "186.20.7.83",
+   "port": 3306,
+   "username": "fromiti",
+   "password": "123456",
+   "database": "type_orm",
+   "synchronize": true,
+   "logging": false,
+   "entities": [
+      "src/entity/**/*.ts"
+   ],
+   "migrations": [
+      "src/migration/**/*.ts"
+   ],
+   "subscribers": [
+      "src/subscriber/**/*.ts"
+   ],
+   "cli": {
+      "entitiesDir": "src/entity",
+      "migrationsDir": "src/migration",
+      "subscribersDir": "src/subscriber"
+   }
+}
