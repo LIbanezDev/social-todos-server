@@ -1,12 +1,12 @@
-import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
-import {Author} from "./Author";
-import {Authorized, Field, ID, ObjectType} from "type-graphql";
+import {BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {User} from "./User";
+import {Field, ID, ObjectType} from "type-graphql";
 
 @ObjectType()
-@Entity()
-export class Photo {
+@Entity({name: "photos"})
+export class Photo extends BaseEntity {
 
-    @Field(type => ID)
+    @Field(() => ID)
     @PrimaryGeneratedColumn()
     id!: number;
 
@@ -22,7 +22,7 @@ export class Photo {
     @Column()
     filename!: string;
 
-    @Field()
+    @Field({defaultValue: 1})
     @Column("double")
     views!: number;
 
@@ -30,7 +30,7 @@ export class Photo {
     @Column()
     isPublished!: boolean;
 
-    @Field(type => Author, {nullable: true})
-    @ManyToOne(() => Author, author => author.photos)
-    author!: Author
+    @Field(() => User, {nullable: true})
+    @ManyToOne(() => User, user => user.photos)
+    user!: User
 }

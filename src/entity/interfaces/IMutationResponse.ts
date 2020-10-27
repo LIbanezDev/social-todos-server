@@ -9,19 +9,14 @@ export class MutationError {
     msg!: string
 }
 
-interface Error {
-    path?: string,
-    msg?: string
-}
-
 @InterfaceType()
-export abstract class IMutationResponse {
+export class IMutationResponse {
     @Field()
-    ok!: boolean
+    ok!: boolean;
 
     @Field({nullable: true})
-    msg!: string
+    msg?: string;
 
-    @Field(type => MutationError,{nullable: true})
-    errors!: Error[]
+    @Field(() => [MutationError],{nullable: true})
+    errors?: MutationError[]
 }

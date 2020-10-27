@@ -1,12 +1,13 @@
 {
    "type": "mysql",
-   "host": "186.20.7.83",
+   "host": "127.0.0.1",
    "port": 3306,
    "username": "fromiti",
    "password": "123456",
    "database": "type_orm",
    "synchronize": true,
-   "logging": false,
+   "timezone": "-04:00",
+   "logging": true,
    "entities": [
       "src/entity/**/*.ts"
    ],

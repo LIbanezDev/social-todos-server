@@ -1,6 +1,7 @@
 import {Request} from "express";
+import { Stream } from "stream";
 
-export interface User {
+export interface AuthUser {
     id: number;
     name: string;
     roles: string[];
@@ -8,5 +9,12 @@ export interface User {
 
 export interface Context {
     req: Request,
-    user?: User,
+    user: AuthUser | null
+}
+
+export interface Upload {
+    filename: string;
+    mimetype: string;
+    encoding: string;
+    createReadStream: () => Stream;
 }

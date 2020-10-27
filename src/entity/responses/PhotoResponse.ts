@@ -5,12 +5,12 @@ import {Photo} from "../Photo";
 @ObjectType({implements: IMutationResponse})
 export class PhotoResponse extends IMutationResponse {
     @Field({nullable: true})
-    photo!: Photo
+    photo?: Photo
 }
 
 @ObjectType({implements: IMutationResponse})
-export class PhotosResponse extends IMutationResponse {
-    @Field(type => [Photo])
+export class PhotosResponse<T> extends IMutationResponse {
+    @Field(() => [Photo])
     photos!: Photo[]
 }
 
