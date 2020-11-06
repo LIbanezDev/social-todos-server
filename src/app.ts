@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import {config} from 'dotenv'
 import express from 'express'
 import bodyParser from "body-parser";
 import {createConnection} from "typeorm";
@@ -11,6 +12,9 @@ import {authChecker} from "./auth/AuthChecker";
 import {AuthUser, Context} from "./types/graphql";
 import {schemaQuery} from "./utils/schemaQuery";
 
+config()
+
+
 class App {
 
     private readonly app: express.Application = express()
@@ -19,7 +23,7 @@ class App {
 
     verifyToken(token: string): AuthUser | null {
         try {
-            return jwt.verify(token, 'TypeGraphQL') as AuthUser
+            return jwt.verify(token, process.env.JWT_SECRET as string) as AuthUser
         } catch (e) {
             return null
         }
@@ -50,16 +54,13 @@ class App {
     async getApolloGraphServer(): Promise<ApolloServer> {
         const schema = await buildSchema({
             resolvers: [__dirname + "/resolvers/**/*.{ts,js}"],
-            authChecker
+            authChecker,
+            validate: false
         });
         return new ApolloServer({
             schema,
             introspection: true,
-            playground: {
-                settings: {
-                    "editor.fontSize": 24,
-                }
-            },
+            playground: {settings: {"editor.fontSize": 24,}},
             formatError(error) {
                 if (error.originalError instanceof ForbiddenError) {
                     return new Error('No estas autenticado, verifica el token de acceso.');
