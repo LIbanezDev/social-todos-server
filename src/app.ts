@@ -19,8 +19,8 @@ class App {
 
     private readonly app: express.Application = express()
     private readonly port: string | number = process.env.PORT || 4000
-    private readonly path: string = "/graphql"
-
+    private readonly path = "/graphql"
+    private readonly production = process.env.NODE_ENV === "production"
     verifyToken(token: string): AuthUser | null {
         try {
             return jwt.verify(token, process.env.JWT_SECRET as string) as AuthUser
@@ -36,16 +36,20 @@ class App {
 
     setIndexRoute(): void {
         this.app.get('/', async (req, res) => {
-            const response = await fetch('http://localhost:4000/graphql', {
+            const url = this.production
+                ? 'https://social-todos-graph.herokuapp.com/'
+                : 'http://localhost:4000/'
+                + 'graphql'
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({query: schemaQuery}),
             })
             const {data} = await response.json()
             res.json({
-                graphql_endpoint: process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4000/graphql',
-                graphl_playground: process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4000/graphql',
-                server_health: process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4000/.well-known/apollo/server-health',
+                graphql_endpoint: url,
+                graphl_playground: url,
+                server_health: url + ".well-known/apollo/server-health",
                 ...data
             })
         })
