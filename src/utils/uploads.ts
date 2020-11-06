@@ -1,29 +1,37 @@
 import {Storage} from "@google-cloud/storage";
 import {Upload} from "../types/graphql";
 
-const storage = new Storage({
-    keyFilename: 'myprojects-290805-4d3a2e94d573.json',
-    projectId: 'my-proyects'
-})
+const gcpCredentials = process.env.CREDS
 
-const bucket = storage.bucket('social-todos');
+if (!gcpCredentials) {
+    throw new Error('CREDS NOT DEFINED')
+}
+const keys = JSON.parse(gcpCredentials)
 
-export async function uploadFile(image: Upload, folder: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
+const storageOptions = {
+    projectId: keys.project_id,
+    credentials: keys
+}
+
+const storage = new Storage(storageOptions)
+
+const bucket = storage.bucket('social_todos');
+
+export async function uploadFile(imagePromise: Upload | undefined, folder: string): Promise<string | null> {
+    if (!imagePromise) {
+        return null
+    }
+    const image = await imagePromise
+    return new Promise((resolve) => {
+        const fileName = `${folder}/${image.filename.replace(/ /g, "_")}`
         image.createReadStream()
-            .on("data", buffer => {
-                const blob = bucket.file(`${folder}/${image.filename.replace(/ /g, "_")}`)
-                const blobStream = blob.createWriteStream({
-                    resumable: true,
+            .pipe(
+                bucket.file(fileName).createWriteStream({
+                    resumable: false,
+                    gzip: true
                 })
-                blobStream
-                    .on('finish', () => {
-                        resolve(true)
-                    })
-                    .on('error', () => {
-                        reject(false)
-                    })
-                    .end(buffer)
-            })
+            )
+            .on('finish', () => resolve(fileName))
+            .on('error', () => resolve(null))
     })
 }
