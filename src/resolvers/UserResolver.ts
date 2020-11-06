@@ -1,30 +1,41 @@
 import {User} from "../entity/User";
-import {Arg, Ctx, Mutation, Query, Resolver} from "type-graphql";
-import {AuthUser, Context, Upload} from "../types/graphql";
+import {Arg, Ctx, FieldResolver, Mutation, Query, Resolver, Root} from "type-graphql";
+import {AuthUser, Context} from "../types/graphql";
 import jwt from 'jsonwebtoken'
-import {GraphQLUpload} from "apollo-server-express";
 import {uploadFile} from "../utils/uploads";
-import {UserRegisterInput} from "../entity/input/UserRegister";
+import {SocialRegisterInput, UserRegisterInput} from "../entity/input/UserRegister";
 import {LoginResponse, RegisterResponse} from "../entity/responses/UserResponse";
-import {getEncryptedCredentials, validateRegister, verifyPassword} from "../utils/auth";
+import {getEncryptedCredentials, getSocialUser, validateRegister, verifyPassword} from "../utils/auth";
 
 @Resolver(User)
 export class UserResolver {
 
+    @FieldResolver()
+    age(@Root() user: User) {
+        let diff = (Date.now() - user.bornDate.getTime()) / 1000;
+        diff /= (60 * 60 * 24);
+        return Math.abs(Math.trunc(diff / 365.25));
+    }
+
     @Mutation(() => RegisterResponse)
     async register(@Arg('data') data: UserRegisterInput): Promise<RegisterResponse> {
         try {
+            const userRegistered = await User.findOne({where: {email: data.email}})
+            if (userRegistered) return {ok: false, msg: "El email ya existe!"}
             const errors = validateRegister(data)
             if (errors.length > 0) {
                 return {ok: false, msg: "No se ha podido registrar el usuario, revise los campos.", errors}
             }
             const {password, salt} = getEncryptedCredentials(data.password)
-            const user = await User.save(Object.assign(new User(), {...data, password, salt}))
+            const imageURL = await uploadFile(data.image, 'users')
+            const user = await User.save(Object.assign(new User(), {
+                ...data,
+                password,
+                salt,
+                image: imageURL
+            }))
             return {ok: true, msg: "Registrado satisfactoriamente!", user}
         } catch (e) {
-            if (e.errno === 1062) { // Email already exists
-                return {ok: false, msg: "El email ya existe!"}
-            }
             return {ok: false, msg: "Error interno, intente mas tarde"}
         }
     }
@@ -47,13 +58,18 @@ export class UserResolver {
             const passwordMatches = verifyPassword({
                 encryptedPassword: userDB.password, salt: userDB.salt, inputPassword: pass
             })
+
             if (!passwordMatches) return loginFailed
+
             const payload: AuthUser = {
                 id: userDB.id,
                 name: userDB.name,
                 roles: ["USER"]
             }
-            const token = jwt.sign(payload, 'TypeGraphQL')
+            const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
+                expiresIn: 60 * 60 * 24 * 7
+            })
+
             return {ok: true, token, msg: "Login exitoso, el token de acceso ha sido concedido.", user: userDB}
         } catch (e) {
             return {ok: false, msg: "Error interno"}
@@ -78,10 +94,47 @@ export class UserResolver {
             .getMany()
     }
 
-    @Mutation(() => Boolean)
-    async uploadFile
-    (@Arg('file', () => GraphQLUpload || Boolean) image: Upload): Promise<Boolean> {
-        return uploadFile(image, 'types')
-    }
 
+    @Mutation(() => LoginResponse)
+    async loginWithToken(@Arg('data') data: SocialRegisterInput): Promise<LoginResponse> {
+        const newUser: Partial<User> = await getSocialUser(data.token, data.type)
+        const userRegistered = await User.findOne({where: {email: newUser.email}})
+        let payload: AuthUser = {
+            id: 0,
+            roles: [],
+            name: ""
+        };
+        if (userRegistered) {
+            if (userRegistered.github || userRegistered.google) {
+                payload = {
+                    id: userRegistered.id,
+                    name: userRegistered.name,
+                    roles: ["USER"]
+                }
+            } else {
+                return {
+                    ok: false,
+                    msg: `El email ${newUser.email} ya ha sido registrado!`,
+                }
+            }
+        } else {
+            const credentials = getEncryptedCredentials('_', true)
+            const user = await User.save(Object.assign(new User(), {
+                ...newUser,
+                ...credentials
+            }))
+            payload = {
+                id: user.id,
+                name: user.name,
+                roles: ["USER"]
+            }
+        }
+        return {
+            ok: true,
+            msg: "Bienvenido a social todos",
+            token: jwt.sign(payload, process.env.JWT_SECRET as string, {
+                expiresIn: 60 * 60 * 24 * 7
+            })
+        }
+    }
 }
