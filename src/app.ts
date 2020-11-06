@@ -36,10 +36,10 @@ class App {
 
     setIndexRoute(): void {
         this.app.get('/', async (req, res) => {
-            const url = this.production
+            let url = this.production
                 ? 'https://social-todos-graph.herokuapp.com/'
                 : 'http://localhost:4000/'
-                + 'graphql'
+            url += 'graphql'
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
