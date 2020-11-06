@@ -21,6 +21,10 @@ class App {
     private readonly port: string | number = process.env.PORT || 4000
     private readonly path = "/graphql"
     private readonly production = process.env.NODE_ENV === "production"
+    private readonly url = this.production
+        ? 'https://social-todos-graph.herokuapp.com/'
+        : 'http://localhost:4000/'
+
     verifyToken(token: string): AuthUser | null {
         try {
             return jwt.verify(token, process.env.JWT_SECRET as string) as AuthUser
@@ -36,20 +40,16 @@ class App {
 
     setIndexRoute(): void {
         this.app.get('/', async (req, res) => {
-            let url = this.production
-                ? 'https://social-todos-graph.herokuapp.com/'
-                : 'http://localhost:4000/'
-            url += 'graphql'
-            const response = await fetch(url, {
+            const response = await fetch(this.url + 'graphql', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({query: schemaQuery}),
             })
             const {data} = await response.json()
             res.json({
-                graphql_endpoint: url,
-                graphl_playground: url,
-                server_health: url + ".well-known/apollo/server-health",
+                graphql_endpoint: this.url,
+                graphl_playground: this.url,
+                server_health: this.url + ".well-known/apollo/server-health",
                 ...data
             })
         })
@@ -97,8 +97,8 @@ class App {
         const httpServer = http.createServer(this.app);
         apolloServer.installSubscriptionHandlers(httpServer);
         httpServer.listen(this.port, () => {
-            console.log(`Server ready at http://localhost:${this.port}${apolloServer.graphqlPath}`)
-            console.log(`Subscriptions ready at ws://localhost:${this.port}${apolloServer.subscriptionsPath}`)
+            console.log(`Server ready at ${this.url}:${this.port}${apolloServer.graphqlPath}`)
+            console.log(`Subscriptions ready at wss://${this.url}:${this.port}${apolloServer.subscriptionsPath}`)
         })
     }
 }
