@@ -25,15 +25,3 @@ export class Message extends BaseEntity {
     @ManyToOne(() => User, receiver => receiver.receivedMessages)
     receiver!: User;
 }
-
-@ObjectType()
-export class MessagePayload {
-    @Field()
-    content!: string
-
-    @Field()
-    receiverId!: number
-
-    @Field()
-    senderId!: number
-}
