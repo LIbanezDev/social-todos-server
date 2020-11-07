@@ -11,7 +11,7 @@ import {ApolloServer} from "apollo-server-express";
 import {authChecker} from "./auth/AuthChecker";
 import {AuthUser, Context} from "./types/graphql";
 import {schemaQuery} from "./utils/schemaQuery";
-import cors, {CorsOptions} from 'cors'
+import cors from 'cors'
 
 config()
 
@@ -37,17 +37,9 @@ class App {
     setParserAndCors(): void {
         this.app.use(bodyParser.json())
         this.app.use(bodyParser.urlencoded({extended: false}))
-        const whitelist = ['http://localhost:3000', 'https://social-todos-web.vercel.app', 'http://localhost:4000']
-        const corsOptions: CorsOptions = {
-            origin: (origin, callback) => {
-                if (whitelist.indexOf(origin || '') !== -1) {
-                    callback(null, true)
-                } else {
-                    callback(new Error('Not allowed by CORS'), false)
-                }
-            }
-        }
-        this.app.use(cors(corsOptions))
+        this.app.use(cors({
+            origin: ['http://localhost:3000', 'https://social-todos-web.vercel.app', 'http://localhost:4000', 'https://social-todos-graph.herokuapp.com/']
+        }))
     }
 
     setIndexRoute(): void {
@@ -110,7 +102,7 @@ class App {
         apolloServer.installSubscriptionHandlers(httpServer);
         httpServer.listen(this.port, () => {
             console.log(`Server ready at ${this.url}:${this.port}${apolloServer.graphqlPath}`)
-            console.log(`Subscriptions ready at wss://${this.url}:${this.port}${apolloServer.subscriptionsPath}`)
+            console.log(`Subscriptions ready at wss://${this.url}${apolloServer.subscriptionsPath}`)
         })
     }
 }
