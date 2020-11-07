@@ -11,6 +11,7 @@ import {ApolloServer} from "apollo-server-express";
 import {authChecker} from "./auth/AuthChecker";
 import {AuthUser, Context} from "./types/graphql";
 import {schemaQuery} from "./utils/schemaQuery";
+import cors, {CorsOptions} from 'cors'
 
 config()
 
@@ -33,9 +34,20 @@ class App {
         }
     }
 
-    setParser(): void {
+    setParserAndCors(): void {
         this.app.use(bodyParser.json())
         this.app.use(bodyParser.urlencoded({extended: false}))
+        const whitelist = ['http://localhost:3000', 'https://social-todos-web.vercel.app']
+        const corsOptions: CorsOptions = {
+            origin: (origin, callback) => {
+                if (whitelist.indexOf(origin || '') !== -1) {
+                    callback(null, true)
+                } else {
+                    callback(new Error('Not allowed by CORS'), false)
+                }
+            }
+        }
+        this.app.use(cors(corsOptions))
     }
 
     setIndexRoute(): void {
@@ -90,7 +102,7 @@ class App {
 
     async start(): Promise<void> {
         await createConnection()
-        this.setParser()
+        this.setParserAndCors()
         this.setIndexRoute();
         const apolloServer = await this.getApolloGraphServer()
         apolloServer.applyMiddleware({app: this.app, path: this.path})
