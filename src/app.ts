@@ -38,13 +38,9 @@ class App {
         this.app.use(bodyParser.json())
         this.app.use(bodyParser.urlencoded({extended: false}))
         this.app.use(cors({
-            origin: ['http://localhost:3000', 'https://social-todos-web.vercel.app', 'https://social-todos-graph.herokuapp.com/', 'http://localhost:4000']
+            origin: ['http://localhost:3000', 'https://social-todos-web.vercel.app', 'https://social-todos-graph.herokuapp.com/', 'http://localhost:4000'],
+            credentials: true
         }))
-        this.app.use((_, res, next) => {
-            res.header('Access-Control-Allow-Origin', 'https://social-todos-web.vercel.app/');
-            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-            next()
-        })
     }
 
     setIndexRoute(): void {
