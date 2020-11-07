@@ -38,8 +38,14 @@ class App {
         this.app.use(bodyParser.json())
         this.app.use(bodyParser.urlencoded({extended: false}))
         this.app.use(cors({
-            origin: ['http://localhost:3000', 'https://social-todos-web.vercel.app', 'http://localhost:4000', 'https://social-todos-graph.herokuapp.com/']
+            origin: ['http://localhost:3000', 'https://social-todos-web.vercel.app', 'https://social-todos-graph.herokuapp.com/', 'http://localhost:4000']
         }))
+        this.app.use((_, res, next) => {
+            res.header('Access-Control-Allow-Origin', 'https://social-todos-web.vercel.app/');
+            res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+            next()
+        })
     }
 
     setIndexRoute(): void {
@@ -51,8 +57,8 @@ class App {
             })
             const {data} = await response.json()
             res.json({
-                graphql_endpoint: this.url,
-                graphl_playground: this.url,
+                graphql_endpoint: this.url + this.path,
+                graphl_playground: this.url + this.path,
                 server_health: this.url + ".well-known/apollo/server-health",
                 ...data
             })
@@ -101,7 +107,7 @@ class App {
         const httpServer = http.createServer(this.app);
         apolloServer.installSubscriptionHandlers(httpServer);
         httpServer.listen(this.port, () => {
-            console.log(`Server ready at ${this.url}:${this.port}${apolloServer.graphqlPath}`)
+            console.log(`Server ready at ${this.url}${apolloServer.graphqlPath}`)
             console.log(`Subscriptions ready at wss://${this.url}${apolloServer.subscriptionsPath}`)
         })
     }

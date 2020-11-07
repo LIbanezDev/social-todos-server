@@ -1,6 +1,6 @@
 .idea/
 node_modules/
-typescript-node.iml
+social_todos_server.iml
 TS.http
 images/*
 
