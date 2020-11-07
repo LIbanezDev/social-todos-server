@@ -37,7 +37,7 @@ class App {
     setParserAndCors(): void {
         this.app.use(bodyParser.json())
         this.app.use(bodyParser.urlencoded({extended: false}))
-        const whitelist = ['http://localhost:3000', 'https://social-todos-web.vercel.app']
+        const whitelist = ['http://localhost:3000', 'https://social-todos-web.vercel.app', 'http://localhost:4000']
         const corsOptions: CorsOptions = {
             origin: (origin, callback) => {
                 if (whitelist.indexOf(origin || '') !== -1) {
