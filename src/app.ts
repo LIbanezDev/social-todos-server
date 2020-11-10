@@ -20,7 +20,7 @@ class App {
 
     private readonly app: express.Application = express()
     private readonly port: string | number = process.env.PORT || 4000
-    private readonly path = "/graphql"
+    private readonly path = "graphql"
     private readonly production = process.env.NODE_ENV === "production"
     private readonly url = this.production
         ? 'https://social-todos-graph.herokuapp.com/'
@@ -98,12 +98,12 @@ class App {
         this.setParserAndCors()
         this.setIndexRoute();
         const apolloServer = await this.getApolloGraphServer()
-        apolloServer.applyMiddleware({app: this.app, path: this.path})
+        apolloServer.applyMiddleware({app: this.app, path: '/' + this.path})
         const httpServer = http.createServer(this.app);
         apolloServer.installSubscriptionHandlers(httpServer);
         httpServer.listen(this.port, () => {
             console.log(`Server ready at ${this.url}${apolloServer.graphqlPath}`)
-            console.log(`Subscriptions ready at wss://${this.url}${apolloServer.subscriptionsPath}`)
+            console.log(`Subscriptions ready at wss://same-path`)
         })
     }
 }
