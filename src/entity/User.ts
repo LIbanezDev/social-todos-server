@@ -1,7 +1,8 @@
 import {BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm";
-import {Photo} from "./Photo";
 import {Field, ID, ObjectType} from "type-graphql";
 import {Message} from "./Message";
+import {UserToTeam} from "./UserToTeam";
+import {Team} from "./Team";
 
 @ObjectType({description: 'Registered users'})
 @Entity({name: 'users'})
@@ -47,10 +48,6 @@ export class User extends BaseEntity {
     @Column({length: 120, nullable: true})
     image?: string
 
-    @Field(() => [Photo])
-    @OneToMany(() => Photo, photo => photo.user)
-    photos!: Photo[]
-
     @Field(() => [Message])
     @OneToMany(() => Message, sender => sender.sender)
     sentMessages!: Message[];
@@ -58,4 +55,8 @@ export class User extends BaseEntity {
     @Field(() => [Message])
     @OneToMany(() => Message, receiver => receiver.receiver)
     receivedMessages!: Message[];
+
+    @Field(() => [Team])
+    @OneToMany(() => UserToTeam, teams => teams.user)
+    teams!: Team[];
 }

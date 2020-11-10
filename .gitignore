@@ -3,4 +3,5 @@ node_modules/
 social_todos_server.iml
 TS.http
 images/*
+.env
 
