@@ -80,7 +80,7 @@ export class UserResolver {
     async me(@Ctx() ctx: Context): Promise<User | null> {
         return ctx.user?.id
             ?
-            await User.findOne(ctx.user?.id, {relations: ['photos', 'sentMessages', 'receivedMessages']}) || null
+            await User.findOne(ctx.user?.id, {relations: ['sentMessages', 'receivedMessages']}) || null
             :
             null
     }
@@ -88,7 +88,6 @@ export class UserResolver {
     @Query(() => [User])
     users(@Ctx() ctx: Context): Promise<User[]> {
         return User.createQueryBuilder('user')
-            .leftJoinAndSelect('user.photos', 'photo')
             .leftJoinAndSelect('user.sentMessages', 'sentMessage')
             .leftJoinAndSelect('user.receivedMessages', 'receivedMessage')
             .getMany()

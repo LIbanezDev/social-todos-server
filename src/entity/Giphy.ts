@@ -22,7 +22,6 @@ export class Image {
 
     @Field({description:"Data on versions of this GIF with a fixed width of 200 pixels. Good for mobile use."})
     fixed_width!: FixedImage
-
 }
 
 

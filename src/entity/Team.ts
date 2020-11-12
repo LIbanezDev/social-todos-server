@@ -4,7 +4,7 @@ import {UserToTeam} from "./UserToTeam";
 import {Field, ObjectType} from "type-graphql";
 
 @ObjectType()
-@Entity()
+@Entity({name: 'teams'})
 export class Team extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number

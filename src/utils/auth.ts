@@ -14,7 +14,6 @@ export const validateRegister = (data: UserRegisterInput): MutationError[] => {
     if (validator.isEmpty(data.name) || !validator.isLength(data.name, {min: 10, max: 100})) {
         errors.push({msg: "Tu nombre debe tener entre 10 y 100 caracteres!", path: "name"})
     }
-
     if (validator.isEmpty(data.password) || !validator.isLength(data.password, {min: 5, max: 30})) {
         errors.push({msg: "La contrasena debe tener entre 5 y 30 caracteres!", path: "password"})
     }

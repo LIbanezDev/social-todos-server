@@ -19,7 +19,7 @@ export class MessageResolver {
         @Arg("to") to: number,
         @Arg("message") message: string,
     ): Promise<MessageResponse> {
-        const newMessage = Object.assign(new Message(), {content: message})
+        const newMessage = Object.assign(new Message(), {content: message, date: new Date()})
         const sender = await User.findOneOrFail(ctx.user.id)
         newMessage.sender = sender
         const messageReceiver = await User.findOne(to)
@@ -27,7 +27,6 @@ export class MessageResolver {
             return {ok: false, msg: "Receptor invalido!", errors: [{msg: "No existe", path: "to"}]}
         }
         newMessage.receiver = messageReceiver
-        newMessage.date = new Date()
         const newMessageDB = await Message.save(newMessage)
         const payload: Partial<Message> = {
             id: newMessageDB.id,
@@ -47,7 +46,7 @@ export class MessageResolver {
     @Authorized()
     @Query(() => [Message])
     async myChat(@Ctx() ctx: Context, @Arg('with', () => Int) withID: number) {
-        return await Message.createQueryBuilder('message')
+        return Message.createQueryBuilder('message')
             .leftJoinAndSelect('message.receiver', 'receiver')
             .leftJoinAndSelect('message.sender', 'sender')
             .where('(receiver.id = :myId AND sender.id = :withId) OR (sender.id = :myId AND receiver.id = :withId)', {
