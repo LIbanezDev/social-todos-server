@@ -1,14 +1,15 @@
-import {Storage} from "@google-cloud/storage";
+import {Storage, StorageOptions} from "@google-cloud/storage";
 import {Upload} from "../types/graphql";
+import {JWTInput} from "google-auth-library";
 
 const gcpCredentials = process.env.CREDS
 
 if (!gcpCredentials) {
     throw new Error('CREDS NOT DEFINED')
 }
-const keys = JSON.parse(gcpCredentials)
+const keys: JWTInput = JSON.parse(gcpCredentials)
 
-const storageOptions = {
+const storageOptions: StorageOptions = {
     projectId: keys.project_id,
     credentials: keys
 }
