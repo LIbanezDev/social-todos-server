@@ -35,7 +35,7 @@ export class UserResolver {
                 image: imageURL
             }))
             return {ok: true, msg: "Registrado satisfactoriamente!", user}
-        } catch (e) {
+        } catch (e: unknown) {
             return {ok: false, msg: "Error interno, intente mas tarde"}
         }
     }
@@ -71,7 +71,7 @@ export class UserResolver {
             })
 
             return {ok: true, token, msg: "Login exitoso, el token de acceso ha sido concedido.", user: userDB}
-        } catch (e) {
+        } catch (e: unknown) {
             return {ok: false, msg: "Error interno"}
         }
     }
