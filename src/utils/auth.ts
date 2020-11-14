@@ -68,7 +68,7 @@ export const getSocialUser = async (token: string, type: AUTH_APPS): Promise<Par
                 'Authorization': `token ${token}`
             }
         })
-        const githubData = await userDataRes.json()
+        const githubData: { name: string, email: string, bio: string, avatar_url: string } = await userDataRes.json()
 
         socialUser.name= githubData.name
         socialUser.email= githubData.email
