@@ -12,6 +12,8 @@ import {authChecker} from "./auth/AuthChecker";
 import {AuthUser, Context} from "./types/graphql";
 import {schemaQuery} from "./utils/schemaQuery";
 import cors from 'cors'
+import {ExpressContext} from "apollo-server-express/dist/ApolloServer";
+import {ExecutionParams} from "subscriptions-transport-ws";
 
 config()
 
@@ -29,7 +31,7 @@ class App {
     verifyToken(token: string): AuthUser | null {
         try {
             return jwt.verify(token, process.env.JWT_SECRET as string) as AuthUser
-        } catch (e) {
+        } catch (e: unknown) {
             return null
         }
     }
@@ -50,12 +52,12 @@ class App {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({query: schemaQuery}),
             })
-            const {data} = await response.json()
+            const json: {data: object} = await response.json()
             res.json({
                 graphql_endpoint: this.url + this.path,
                 graphl_playground: this.url + this.path,
                 server_health: this.url + ".well-known/apollo/server-health",
-                ...data
+                ...json.data
             })
         })
     }
@@ -76,13 +78,15 @@ class App {
                 }
                 return error
             },
-            context: (context): Context => {
-                let user = null;
-                if (context.connection) {
-                    if (context.connection.context.authorization) {
-                        user = this.verifyToken(context.connection.context.authorization)
+            context: (context: ExpressContext): Context => {
+                let user: AuthUser | null  = null;
+
+                if (context.connection) { // Websocket connection
+                    const connection = context.connection as ExecutionParams<{authorization?: string}>
+                    if (connection.context.authorization) {
+                        user = this.verifyToken(connection.context.authorization)
                     }
-                } else if (context.req.headers.authorization) {
+                } else if (context.req.headers.authorization) { // HTTP connection
                     user = this.verifyToken(context.req.headers.authorization)
                 }
                 return {
