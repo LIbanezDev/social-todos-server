@@ -1,5 +1,5 @@
 import validator from "validator";
-import {AUTH_APPS, UserRegisterInput} from "../entity/input/UserRegister";
+import {AUTH_APPS, UserRegisterInput} from "../entity/input/UserRegisterInput";
 import crypto from 'crypto'
 import {MutationError} from "../entity/interfaces/IMutationResponse";
 import {User} from "../entity/User";

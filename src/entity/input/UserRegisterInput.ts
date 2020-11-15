@@ -30,8 +30,6 @@ export class UserRegisterInput {
     @Field(() => GraphQLUpload || Boolean, {nullable: true})
     image?: Upload
 
-    @Field({nullable: true})
-    imageURL?: string
 }
 
 @InputType({description: "Datos necesarios para ingresar mediante una aplicacion externa como GitHub o Google"})
