@@ -1,7 +1,7 @@
 {
-  "name": "typescript-node",
+  "name": "social-todos-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "backend side for social todos app, powered by graphql",
   "main": "app.js",
   "scripts": {
     "start": "ts-node src/app.ts",
@@ -9,9 +9,9 @@
     "tsc": "tsc",
     "type-coverage": "type-coverage --detail"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["graphql", "apollo-server", "typescript", "type-orm", "type-graphql"],
+  "author": "Lucas Ignacio",
+  "license": "MIT",
   "dependencies": {
     "@google-cloud/storage": "^5.3.0",
     "@types/express": "^4.17.8",
