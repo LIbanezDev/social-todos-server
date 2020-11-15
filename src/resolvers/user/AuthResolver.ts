@@ -1,24 +1,18 @@
-import {User} from "../entity/User";
-import {Arg, Ctx, FieldResolver, Mutation, Query, Resolver, Root} from "type-graphql";
-import {AuthUser, Context} from "../types/graphql";
-import jwt from 'jsonwebtoken'
-import {uploadFile} from "../utils/uploads";
-import {SocialRegisterInput, UserRegisterInput} from "../entity/input/UserRegister";
-import {LoginResponse, RegisterResponse} from "../entity/responses/UserResponse";
-import {getEncryptedCredentials, getSocialUser, validateRegister, verifyPassword} from "../utils/auth";
+import {Arg, Mutation, Resolver} from "type-graphql";
+import {User} from "../../entity/User";
+import {LoginResponse, UserResponse} from "../../entity/responses/UserResponse";
+import {SocialRegisterInput, UserRegisterInput} from "../../entity/input/UserRegisterInput";
+import {getEncryptedCredentials, getSocialUser, validateRegister, verifyPassword} from "../../utils/auth";
+import {uploadFile} from "../../utils/uploads";
+import {AuthUser} from "../../types/graphql";
+import jwt from "jsonwebtoken";
+
 
 @Resolver(User)
-export class UserResolver {
+export class AuthResolver {
 
-    @FieldResolver()
-    age(@Root() user: User) {
-        let diff = (Date.now() - user.bornDate.getTime()) / 1000;
-        diff /= (60 * 60 * 24);
-        return Math.abs(Math.trunc(diff / 365.25));
-    }
-
-    @Mutation(() => RegisterResponse)
-    async register(@Arg('data') data: UserRegisterInput): Promise<RegisterResponse> {
+    @Mutation(() => UserResponse)
+    async register(@Arg('data') data: UserRegisterInput): Promise<UserResponse> {
         try {
             const userRegistered = await User.findOne({where: {email: data.email}})
             if (userRegistered) return {ok: false, msg: "El email ya existe!"}
@@ -75,24 +69,6 @@ export class UserResolver {
             return {ok: false, msg: "Error interno"}
         }
     }
-
-    @Query(() => User, {nullable: true})
-    async me(@Ctx() ctx: Context): Promise<User | null> {
-        return ctx.user?.id
-            ?
-            await User.findOne(ctx.user?.id, {relations: ['sentMessages', 'receivedMessages']}) || null
-            :
-            null
-    }
-
-    @Query(() => [User])
-    users(@Ctx() ctx: Context): Promise<User[]> {
-        return User.createQueryBuilder('user')
-            .leftJoinAndSelect('user.sentMessages', 'sentMessage')
-            .leftJoinAndSelect('user.receivedMessages', 'receivedMessage')
-            .getMany()
-    }
-
 
     @Mutation(() => LoginResponse)
     async loginWithToken(@Arg('data') data: SocialRegisterInput): Promise<LoginResponse> {
