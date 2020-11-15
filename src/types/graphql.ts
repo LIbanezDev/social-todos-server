@@ -1,5 +1,5 @@
 import {Request} from "express";
-import { Stream } from "stream";
+import {Stream} from "stream";
 
 export interface AuthUser {
     id: number;
@@ -10,6 +10,10 @@ export interface AuthUser {
 export interface Context {
     req: Request,
     user: AuthUser | null
+}
+
+export interface AuthContext extends Context {
+    user: AuthUser
 }
 
 export interface Upload {
