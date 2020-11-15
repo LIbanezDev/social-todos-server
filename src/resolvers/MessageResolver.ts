@@ -1,6 +1,6 @@
 import {Arg, Authorized, Ctx, Int, Mutation, PubSub, PubSubEngine, Query, Resolver} from "type-graphql";
 import {Message} from "../entity/Message";
-import {AuthUser, Context} from "../types/graphql";
+import {AuthContext, Context} from "../types/graphql";
 import {User} from "../entity/User";
 import {MessageResponse} from "../entity/responses/MessageResponse";
 
@@ -15,7 +15,7 @@ export class MessageResolver {
     @Mutation(() => MessageResponse)
     async enviarMensaje(
         @PubSub() pubSub: PubSubEngine,
-        @Ctx() ctx: Context & { user: AuthUser },
+        @Ctx() ctx: AuthContext,
         @Arg("to") to: number,
         @Arg("message") message: string,
     ): Promise<MessageResponse> {
