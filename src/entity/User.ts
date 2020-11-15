@@ -2,7 +2,7 @@ import {BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typ
 import {Field, ID, ObjectType} from "type-graphql";
 import {Message} from "./Message";
 import {UserToTeam} from "./UserToTeam";
-import {Team} from "./Team";
+import {FriendRequest} from "./FriendRequest";
 
 @ObjectType({description: 'Registered users'})
 @Entity({name: 'users'})
@@ -45,8 +45,17 @@ export class User extends BaseEntity {
     salt!: string
 
     @Field({nullable: true})
-    @Column({length: 120, nullable: true})
+    @Column({length: 180, nullable: true})
     image?: string
+
+    @OneToMany(() => FriendRequest, sender => sender.sender)
+    sentFriendRequests!: FriendRequest[];
+
+    @OneToMany(() => FriendRequest, receiver => receiver.receiver)
+    receivedFriendRequests!: FriendRequest[];
+
+    @Field(() => [User])
+    friends!: this[]
 
     @Field(() => [Message])
     @OneToMany(() => Message, sender => sender.sender)
@@ -56,7 +65,7 @@ export class User extends BaseEntity {
     @OneToMany(() => Message, receiver => receiver.receiver)
     receivedMessages!: Message[];
 
-    @Field(() => [Team])
+    @Field(() => [UserToTeam])
     @OneToMany(() => UserToTeam, teams => teams.user)
-    teams!: Team[];
+    teams!: UserToTeam[];
 }
