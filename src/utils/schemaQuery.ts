@@ -1,6 +1,6 @@
-import {gql} from "apollo-server-express";
 
-export const schemaQuery = gql`
+
+export const schemaQuery = `
     {
         __schema {
             queryType {
