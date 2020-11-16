@@ -1,4 +1,4 @@
-import {BaseEntity, Column, OneToMany, PrimaryGeneratedColumn, Entity} from "typeorm";
+import {BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {User} from "./User";
 import {UserToTeam} from "./UserToTeam";
 import {Field, ObjectType} from "type-graphql";
@@ -6,14 +6,20 @@ import {Field, ObjectType} from "type-graphql";
 @ObjectType()
 @Entity({name: 'teams'})
 export class Team extends BaseEntity {
+
+    @Field()
     @PrimaryGeneratedColumn()
     id!: number
 
     @Field()
-    @Column()
+    @Column({nullable: false})
     name!: string
 
-    @Field(() => [User])
+    @Column({nullable: true})
+    @Field({nullable: true})
+    password?: string
+
+    @Field(() => [UserToTeam])
     @OneToMany(() => UserToTeam, users => users.team)
-    users!: User[]
+    users!: UserToTeam[]
 }

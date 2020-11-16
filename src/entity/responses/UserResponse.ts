@@ -3,7 +3,7 @@ import {IMutationResponse} from "../interfaces/IMutationResponse";
 import {User} from "../User";
 
 @ObjectType({implements: IMutationResponse})
-export class RegisterResponse extends IMutationResponse {
+export class UserResponse extends IMutationResponse {
     @Field({nullable: true})
     user?: User
 }

@@ -19,14 +19,11 @@ config()
 
 
 class App {
-
     private readonly app: express.Application = express()
     private readonly port: string | number = process.env.PORT || 4000
     private readonly path = "graphql"
     private readonly production = process.env.NODE_ENV === "production"
-    private readonly url = this.production
-        ? 'https://social-todos-graph.herokuapp.com/'
-        : 'http://localhost:4000/'
+    private readonly url = this.production ? 'https://social-todos-graph.herokuapp.com/' : 'http://localhost:4000/'
 
     verifyToken(token: string): AuthUser | null {
         try {
@@ -52,7 +49,7 @@ class App {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({query: schemaQuery}),
             })
-            const json: {data: object} = await response.json()
+            const json: { data: object } = await response.json()
             res.json({
                 graphql_endpoint: this.url + this.path,
                 graphl_playground: this.url + this.path,
@@ -79,12 +76,12 @@ class App {
                 return error
             },
             context: (context: ExpressContext): Context => {
-                let user: AuthUser | null  = null;
+                let user: AuthUser | null = null;
 
                 if (context.connection) { // Websocket connection
-                    const connection = context.connection as ExecutionParams<{authorization?: string}>
-                    if (connection.context.authorization) {
-                        user = this.verifyToken(connection.context.authorization)
+                    const connection = context.connection as ExecutionParams<{ Authorization?: string }>
+                    if (connection.context.Authorization) {
+                        user = this.verifyToken(connection.context.Authorization)
                     }
                 } else if (context.req.headers.authorization) { // HTTP connection
                     user = this.verifyToken(context.req.headers.authorization)

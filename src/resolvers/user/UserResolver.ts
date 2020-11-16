@@ -1,6 +1,6 @@
 import {User} from "../../entity/User";
-import {Authorized, Ctx, FieldResolver, Query, Resolver, Root} from "type-graphql";
-import {AuthContext, Context} from "../../types/graphql";
+import {Ctx, FieldResolver, Query, Resolver, Root} from "type-graphql";
+import {Context} from "../../types/graphql";
 
 @Resolver(User)
 export class UserResolver {
@@ -12,9 +12,11 @@ export class UserResolver {
         return Math.abs(Math.trunc(diff / 365.25));
     }
 
-    @Authorized()
     @Query(() => User, {nullable: true})
-    async me(@Ctx() ctx: AuthContext): Promise<Partial<User> | null> {
+    async me(@Ctx() ctx: Context): Promise<Partial<User> | null> {
+        if (!ctx.user) {
+            return null
+        }
         const user = await User.createQueryBuilder('user')
             .where('user.id = :id', {id: ctx.user.id})
             .leftJoinAndSelect('user.teams', 'teams')

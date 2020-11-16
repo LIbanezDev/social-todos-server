@@ -3,10 +3,8 @@ import {Message} from "../entity/Message";
 import {AuthContext, Context} from "../types/graphql";
 import {User} from "../entity/User";
 import {MessageResponse} from "../entity/responses/MessageResponse";
+import {NOTIFICATIONS_TOPIC} from "./subscriptions/SubscriptionsResolver";
 
-export enum MESSAGE_TOPICS {
-    NEW_MESSAGE = "NEW_MESSAGE"
-}
 
 @Resolver(Message)
 export class MessageResolver {
@@ -19,27 +17,27 @@ export class MessageResolver {
         @Arg("to") to: number,
         @Arg("message") message: string,
     ): Promise<MessageResponse> {
-        const newMessage = Object.assign(new Message(), {content: message, date: new Date()})
-        const sender = await User.findOneOrFail(ctx.user.id)
-        newMessage.sender = sender
         const messageReceiver = await User.findOne(to)
-        if (!messageReceiver) {
-            return {ok: false, msg: "Receptor invalido!", errors: [{msg: "No existe", path: "to"}]}
-        }
-        newMessage.receiver = messageReceiver
-        const newMessageDB = await Message.save(newMessage)
+        if (!messageReceiver) return {ok: false, msg: "Receptor invalido!", errors: [{msg: "No existe", path: "to"}]}
+        const sender = await User.findOneOrFail(ctx.user.id)
+        const newMessageDB = await Message.create({
+            sender,
+            receiver: messageReceiver,
+            content: message,
+            date: new Date()
+        }).save()
         const payload: Partial<Message> = {
             id: newMessageDB.id,
             date: newMessageDB.date,
             content: newMessageDB.content,
             receiver: messageReceiver,
-            sender: sender,
+            sender,
         };
-        await pubSub.publish(MESSAGE_TOPICS.NEW_MESSAGE, payload);
+        await pubSub.publish(NOTIFICATIONS_TOPIC.NEW_MESSAGE, payload);
         return {
             ok: true,
             msg: "Mensaje enviado!",
-            message: newMessage
+            message: newMessageDB
         };
     }
 

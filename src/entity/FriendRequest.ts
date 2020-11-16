@@ -1,13 +1,13 @@
 import {Column, Entity, PrimaryGeneratedColumn, BaseEntity} from "typeorm";
 import {ManyToOne} from "typeorm/index";
 import {User} from "./User";
-import {Field, ObjectType} from "type-graphql";
+import {Field, ID, ObjectType} from "type-graphql";
 
 
 @ObjectType({description:"Solicitudes de amistad entre usuarios"})
 @Entity({name: "friends"})
 export class FriendRequest extends BaseEntity {
-    @Field()
+    @Field(() => ID)
     @PrimaryGeneratedColumn()
     id!: number
 
