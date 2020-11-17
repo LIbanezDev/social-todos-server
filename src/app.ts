@@ -4,19 +4,32 @@ import express from 'express'
 import bodyParser from "body-parser";
 import {createConnection} from "typeorm";
 import {buildSchema, ForbiddenError} from "type-graphql";
-import jwt from 'jsonwebtoken'
 import * as http from "http";
 import fetch from "node-fetch";
 import {ApolloServer} from "apollo-server-express";
 import {authChecker} from "./auth/AuthChecker";
-import {AuthUser, Context} from "./types/graphql";
 import {schemaQuery} from "./utils/schemaQuery";
 import cors from 'cors'
-import {ExpressContext} from "apollo-server-express/dist/ApolloServer";
-import {ExecutionParams} from "subscriptions-transport-ws";
+import {tokenChecker} from "./utils/auth";
+import fs from 'fs'
+import https, {ServerOptions} from 'https'
 
 config()
 
+/*const cert = fs.readFileSync('src/ssl/lucasignacio_me.crt');
+const ca = fs.readFileSync('src/ssl/lucasignacio_me.ca-bundle');
+const key = fs.readFileSync('src/ssl/lucasignacio_me.key');
+
+const httpsOptions: ServerOptions = {
+    key,
+    cert,
+    ca
+}
+
+https.createServer(httpsOptions, function (req, res) {
+    res.writeHead(200);
+    res.end("Welcome to Node.js HTTPS Servern");
+}).listen(8443)*/
 
 class App {
     private readonly app: express.Application = express()
@@ -25,13 +38,6 @@ class App {
     private readonly production = process.env.NODE_ENV === "production"
     private readonly url = this.production ? 'https://social-todos-graph.herokuapp.com/' : 'http://localhost:4000/'
 
-    verifyToken(token: string): AuthUser | null {
-        try {
-            return jwt.verify(token, process.env.JWT_SECRET as string) as AuthUser
-        } catch (e: unknown) {
-            return null
-        }
-    }
 
     setParserAndCors(): void {
         this.app.use(bodyParser.json())
@@ -75,22 +81,7 @@ class App {
                 }
                 return error
             },
-            context: (context: ExpressContext): Context => {
-                let user: AuthUser | null = null;
-
-                if (context.connection) { // Websocket connection
-                    const connection = context.connection as ExecutionParams<{ Authorization?: string }>
-                    if (connection.context.Authorization) {
-                        user = this.verifyToken(connection.context.Authorization)
-                    }
-                } else if (context.req.headers.authorization) { // HTTP connection
-                    user = this.verifyToken(context.req.headers.authorization)
-                }
-                return {
-                    req: context.req,
-                    user
-                }
-            }
+            context: tokenChecker
         })
     }
 

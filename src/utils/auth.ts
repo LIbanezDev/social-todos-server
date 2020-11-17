@@ -5,6 +5,10 @@ import {MutationError} from "../entity/interfaces/IMutationResponse";
 import {User} from "../entity/User";
 import fetch from "node-fetch";
 import {OAuth2Client} from 'google-auth-library';
+import {ExpressContext} from "apollo-server-express/dist/ApolloServer";
+import {AuthUser, Context} from "../types/graphql";
+import {ExecutionParams} from "subscriptions-transport-ws";
+import jwt from "jsonwebtoken";
 
 export const validateRegister = (data: UserRegisterInput): MutationError[] => {
     const errors: MutationError[] = []
@@ -49,13 +53,13 @@ export const verifyPassword = ({inputPassword, encryptedPassword, salt}: IVerify
 }
 
 export const getSocialUser = async (token: string, type: AUTH_APPS): Promise<Partial<User>> => {
-    let socialUser : Partial<User> = {}
+    let socialUser: Partial<User> = {}
     if (type == 0) {
-         const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-         const loginTicket = await googleClient.verifyIdToken({
-             idToken: token,
-             audience: process.env.GOOGLE_CLIENT_ID
-         })
+        const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+        const loginTicket = await googleClient.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID
+        })
         const googleUser = loginTicket.getPayload()
         socialUser.email = googleUser?.email
         socialUser.name = googleUser?.name
@@ -70,12 +74,37 @@ export const getSocialUser = async (token: string, type: AUTH_APPS): Promise<Par
         })
         const githubData: { name: string, email: string, bio: string, avatar_url: string } = await userDataRes.json()
 
-        socialUser.name= githubData.name
-        socialUser.email= githubData.email
-        socialUser.description= githubData.bio
-        socialUser.image= githubData.avatar_url
-        socialUser.github= true
+        socialUser.name = githubData.name
+        socialUser.email = githubData.email
+        socialUser.description = githubData.bio
+        socialUser.image = githubData.avatar_url
+        socialUser.github = true
     }
     socialUser.bornDate = new Date()
     return socialUser
+}
+
+export const verifyToken = (token: string): AuthUser | null => {
+    try {
+        return jwt.verify(token, process.env.JWT_SECRET as string) as AuthUser
+    } catch (e: unknown) {
+        return null
+    }
+}
+
+export const tokenChecker = (context: ExpressContext): Context => {
+    let user: AuthUser | null = null;
+
+    if (context.connection) { // Websocket connection
+        const connection = context.connection as ExecutionParams<{ Authorization?: string }>
+        if (connection.context.Authorization) {
+            user = verifyToken(connection.context.Authorization)
+        }
+    } else if (context.req.headers.authorization) { // HTTP connection
+        user = verifyToken(context.req.headers.authorization)
+    }
+    return {
+        req: context.req,
+        user
+    }
 }
