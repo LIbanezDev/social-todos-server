@@ -44,9 +44,9 @@ export class User extends BaseEntity {
     @Column({length: 30, nullable: false})
     salt!: string
 
-    @Field({nullable: true})
-    @Column({length: 180, nullable: true})
-    image?: string
+    @Field(() => String,{nullable: true})
+    @Column({length: 180, nullable: true, type:"varchar"})
+    image?: string | null
 
     @OneToMany(() => FriendRequest, sender => sender.sender)
     sentFriendRequests!: FriendRequest[];
