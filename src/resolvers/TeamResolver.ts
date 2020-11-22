@@ -1,13 +1,20 @@
-import {Arg, Authorized, Ctx, Mutation, Query, Resolver} from "type-graphql";
+import {Arg, Authorized, Ctx, FieldResolver, Mutation, Query, Resolver, Root} from "type-graphql";
 import {Team} from "../entity/Team";
 import {CreateTeamInput} from "../entity/input/TeamInput";
 import {UserToTeam} from "../entity/UserToTeam";
 import {AuthContext} from "../types/graphql";
 import {TeamResponse} from "../entity/responses/TeamResponse";
+import {uploadFile} from "../utils/uploads";
+import {getEncryptedCredentials} from "../utils/auth";
 
 
 @Resolver(Team)
 export class TeamResolver {
+
+    @FieldResolver()
+    isPublic(@Root() team: Team) {
+        return team.password === null
+    }
 
     @Query(() => [Team], {description: "Get Teams!"})
     teams() {
@@ -38,7 +45,15 @@ export class TeamResolver {
     @Mutation(() => TeamResponse)
     async createTeam(@Arg('data') data: CreateTeamInput, @Ctx() ctx: AuthContext): Promise<TeamResponse> {
         try {
-            const newTeam = await Team.create({...data}).save()
+            const imageURL = await uploadFile(data.image, 'teams')
+            let pass: null | string = null;
+            let _salt: null | string = null;
+            if (data.password) {
+                const {password, salt} = getEncryptedCredentials(data.password)
+                pass = password
+                _salt = salt
+            }
+            const newTeam = await Team.create({...data, password: pass, salt: _salt, image: imageURL}).save()
             await UserToTeam.create({userId: ctx.user.id, team: newTeam, userIsAdmin: true}).save()
             return {ok: true, msg: "Equipo Creado", team: newTeam}
         } catch (e: unknown) {
