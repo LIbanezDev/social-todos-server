@@ -22,12 +22,11 @@ export class AuthResolver {
             }
             const {password, salt} = getEncryptedCredentials(data.password)
             const imageURL = await uploadFile(data.image, 'users')
-            const user = await User.save(Object.assign(new User(), {
-                ...data,
+            const user = await User.create({...data,
                 password,
                 salt,
                 image: imageURL
-            }))
+            }).save()
             return {ok: true, msg: "Registrado satisfactoriamente!", user}
         } catch (e: unknown) {
             return {ok: false, msg: "Error interno, intente mas tarde"}
