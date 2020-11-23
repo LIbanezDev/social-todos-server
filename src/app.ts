@@ -7,31 +7,14 @@ import {buildSchema, ForbiddenError} from "type-graphql";
 import * as http from "http";
 import fetch from "node-fetch";
 import {ApolloServer} from "apollo-server-express";
-import {authChecker} from "./auth/AuthChecker";
+import {authChecker, tokenChecker} from "./utils/auth";
 import {schemaQuery} from "./utils/schemaQuery";
 import cors from 'cors'
-import {tokenChecker} from "./utils/auth";
-import fs from 'fs'
-import https, {ServerOptions} from 'https'
 
 config()
 
-/*const cert = fs.readFileSync('src/ssl/lucasignacio_me.crt');
-const ca = fs.readFileSync('src/ssl/lucasignacio_me.ca-bundle');
-const key = fs.readFileSync('src/ssl/lucasignacio_me.key');
-
-const httpsOptions: ServerOptions = {
-    key,
-    cert,
-    ca
-}
-
-https.createServer(httpsOptions, function (req, res) {
-    res.writeHead(200);
-    res.end("Welcome to Node.js HTTPS Servern");
-}).listen(8443)*/
-
 class App {
+
     private readonly app: express.Application = express()
     private readonly port: string | number = process.env.PORT || 4000
     private readonly path = "graphql"
@@ -39,7 +22,7 @@ class App {
     private readonly url = this.production ? 'https://social-todos-graph.herokuapp.com/' : 'http://localhost:4000/'
 
 
-    setParserAndCors(): void {
+    private setParserAndCors(): void {
         this.app.use(bodyParser.json())
         this.app.use(bodyParser.urlencoded({extended: false}))
         this.app.use(cors({
@@ -48,7 +31,7 @@ class App {
         }))
     }
 
-    setIndexRoute(): void {
+    private setIndexRoute(): void {
         this.app.get('/', async (req, res) => {
             const response = await fetch(this.url + 'graphql', {
                 method: 'POST',
@@ -65,7 +48,7 @@ class App {
         })
     }
 
-    async getApolloGraphServer(): Promise<ApolloServer> {
+    private async getApolloGraphServer(): Promise<ApolloServer> {
         const schema = await buildSchema({
             resolvers: [__dirname + "/resolvers/**/*.{ts,js}"],
             authChecker,
@@ -85,7 +68,7 @@ class App {
         })
     }
 
-    async start(): Promise<void> {
+    public async start(): Promise<void> {
         await createConnection()
         this.setParserAndCors()
         this.setIndexRoute();

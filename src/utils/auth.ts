@@ -9,6 +9,7 @@ import {ExpressContext} from "apollo-server-express/dist/ApolloServer";
 import {AuthUser, Context} from "../types/graphql";
 import {ExecutionParams} from "subscriptions-transport-ws";
 import jwt from "jsonwebtoken";
+import {AuthChecker} from "type-graphql";
 
 export const validateRegister = (data: UserRegisterInput): MutationError[] => {
     const errors: MutationError[] = []
@@ -108,3 +109,23 @@ export const tokenChecker = (context: ExpressContext): Context => {
         user
     }
 }
+
+// Auth checker for @Authorized() typegraphql feature
+export const authChecker: AuthChecker<Context> =
+    ({context: {req, user}}, roles) => {
+        if (!user) {
+            return false
+        }
+
+        if (roles.length === 0) { // if `@Authorized()`, check only is user exist
+            return true;
+        }
+
+        if (user.roles.some(role => roles.includes(role))) {
+            return true
+        }
+        // here we can read the user from context
+        // and check his permission in the db against the `roles` argument
+        // that comes from the `@Authorized` decorator, eg. ["ADMIN", "MODERATOR"]
+        return false; // or false if access is denied
+    };

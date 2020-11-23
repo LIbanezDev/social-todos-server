@@ -1,5 +1,5 @@
 import {User} from "../../entity/User";
-import {Ctx, FieldResolver, Query, Resolver, Root} from "type-graphql";
+import {Arg, Ctx, FieldResolver, Query, Resolver, Root} from "type-graphql";
 import {Context} from "../../types/graphql";
 
 @Resolver(User)
@@ -12,13 +12,16 @@ export class UserResolver {
         return Math.abs(Math.trunc(diff / 365.25));
     }
 
-    @Query(() => User, {nullable: true})
-    async me(@Ctx() ctx: Context): Promise<Partial<User> | null> {
-        if (!ctx.user) {
-            return null
+    @Query(() => User, {nullable: true, description: "Get user by id. If you want to see your own info set id = -1"})
+    async user(@Ctx() ctx: Context, @Arg('id') id: number): Promise<Partial<User> | null> {
+        if (id === -1) {
+            if (!ctx.user) {
+                return null
+            }
         }
+        const idToSearch = id === -1 ? ctx.user?.id : id
         const user = await User.createQueryBuilder('user')
-            .where('user.id = :id', {id: ctx.user.id})
+            .where('user.id = :id', {id: idToSearch})
             .leftJoinAndSelect('user.teams', 'teams')
             .leftJoinAndSelect('teams.team', 'team')
             .leftJoinAndSelect('user.sentFriendRequests', 'sentRequests', 'sentRequests.friendshipState = :c', {c: false})

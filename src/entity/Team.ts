@@ -1,12 +1,12 @@
 import {BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {UserToTeam} from "./UserToTeam";
-import {Field, ObjectType} from "type-graphql";
+import {Field, ID, ObjectType} from "type-graphql";
 
 @ObjectType()
 @Entity({name: 'teams'})
 export class Team extends BaseEntity {
 
-    @Field()
+    @Field(() => ID)
     @PrimaryGeneratedColumn()
     id!: number
 

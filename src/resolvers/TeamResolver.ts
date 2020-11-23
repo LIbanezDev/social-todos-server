@@ -1,11 +1,11 @@
 import {Arg, Authorized, Ctx, FieldResolver, Mutation, Query, Resolver, Root} from "type-graphql";
 import {Team} from "../entity/Team";
-import {CreateTeamInput} from "../entity/input/TeamInput";
+import {CreateTeamInput, JoinTeamInput} from "../entity/input/TeamInput";
 import {UserToTeam} from "../entity/UserToTeam";
 import {AuthContext} from "../types/graphql";
 import {TeamResponse} from "../entity/responses/TeamResponse";
 import {uploadFile} from "../utils/uploads";
-import {getEncryptedCredentials} from "../utils/auth";
+import {getEncryptedCredentials, verifyPassword} from "../utils/auth";
 
 
 @Resolver(Team)
@@ -28,13 +28,25 @@ export class TeamResolver {
 
     @Authorized()
     @Mutation(() => TeamResponse)
-    async joinTeam(@Arg('id', {description: "Team ID"}) id: number, @Ctx() ctx: AuthContext): Promise<TeamResponse> {
+    async joinTeam(
+        @Arg('data') data: JoinTeamInput, @Ctx() ctx: AuthContext): Promise<TeamResponse> {
         try {
-            const userExist = await UserToTeam.findOne({where: {teamId: id, userId: ctx.user.id}})
+            const userExist = await UserToTeam.findOne({where: {teamId: data.id, userId: ctx.user.id}})
             if (userExist) return {ok: false, msg: "Ya eres parte del equipo!", errors: [{path: "id", msg: "Duplicado"}]}
-            const team = await Team.findOne({where: {id}})
+            const team = await Team.findOne({where: {id: data.id}})
             if (!team) return {ok: false, msg: "El equipo no existe!", errors: [{path: "id", msg: "No existe"}]}
-            await UserToTeam.create({userId: ctx.user.id, teamId: id, userIsAdmin: false}).save()
+            if (team.password && team.salt) {
+                if (!data.password) return {ok: false, msg: "Debe ingresar contraseña!", errors:[{path: "password", msg: "Vacio."}]}
+                const isValid = verifyPassword({
+                    inputPassword: data.password,
+                    salt: team.salt,
+                    encryptedPassword: team.password
+                })
+                if (!isValid) {
+                    return {ok: false, msg: "Contraseña incorrecta!", errors:[{path: "password", msg: "No coincide."}]}
+                }
+            }
+            await UserToTeam.create({userId: ctx.user.id, teamId: data.id, userIsAdmin: false}).save()
             return {ok: true, msg: "Bienvenido a tu nuevo equipo: " + team.name, team}
         } catch (e: unknown) {
             return {ok: false, msg: JSON.stringify(e)}
