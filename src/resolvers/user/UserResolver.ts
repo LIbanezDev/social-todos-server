@@ -24,7 +24,7 @@ export class UserResolver {
             .where('user.id = :id', {id: idToSearch})
             .leftJoinAndSelect('user.teams', 'teams')
             .leftJoinAndSelect('teams.team', 'team')
-            .leftJoinAndSelect('user.sentFriendRequests', 'sentRequests', 'sentRequests.friendshipState = :c', {c: false})
+            .leftJoinAndSelect('user.sentFriendRequests', 'sentRequests', 'sentRequests.friendshipState = :c', {c: true})
             .leftJoinAndSelect('user.receivedFriendRequests', 'receivedRequests', 'receivedRequests.friendshipState = :t', {t: true})
             .leftJoinAndSelect('sentRequests.receiver', 'receiver')
             .leftJoinAndSelect('receivedRequests.sender', 'sender')
@@ -35,8 +35,10 @@ export class UserResolver {
     }
 
     @Query(() => [User])
-    users(@Ctx() ctx: Context): Promise<User[]> {
+    async users(@Ctx() ctx: Context): Promise<User[]> {
         return User.createQueryBuilder('user')
+            .leftJoinAndSelect('user.teams', 'teams')
+            .leftJoinAndSelect('teams.team', 'team')
             .leftJoinAndSelect('user.sentMessages', 'sentMessage')
             .leftJoinAndSelect('user.receivedMessages', 'receivedMessage')
             .getMany()

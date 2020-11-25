@@ -19,6 +19,13 @@ export class FriendRequestResolver {
             const receiver = await User.findOne({where: {id: to}})
             const sender = await User.findOne({where:{id: ctx.user.id}})
             if (!receiver) return {ok: false, msg: "Destinatario no existe", errors: [{path: "id", msg: "No existe"}]}
+            const existingFriendRequest = await FriendRequest.findOne({
+                where: {
+                    senderId: ctx.user.id,
+                    receiverId: to
+                }
+            })
+            if (existingFriendRequest) return {ok: false, msg: "Ya enviaste una solicitud a " + receiver.name, errors: [{path: "to", msg: "Duplicado"}]}
             const friendRequest = await FriendRequest.create({sender, receiver}).save()
             await pubSub.publish(NOTIFICATIONS_TOPIC.NEW_FRIEND_REQUEST, friendRequest)
             return {ok: true, msg: "Solicitud enviada correctamente a " + receiver.name, user: receiver}
@@ -31,6 +38,18 @@ export class FriendRequestResolver {
     @Query(() => [FriendRequest])
     async myFriendRequests(@Ctx() ctx: AuthContext) {
         return FriendRequest.find({relations: ['sender'], where: {receiverId: ctx.user.id}})
+    }
+
+    @Authorized()
+    @Query(() => [FriendRequest])
+    async myPendientFriendRequests(@Ctx() ctx: AuthContext): Promise<FriendRequest[]> {
+        return FriendRequest.find({
+            where: {
+                senderId: ctx.user.id,
+                friendshipState: false
+            },
+            relations: ['receiver']
+        })
     }
 
     @Authorized()
