@@ -17,8 +17,8 @@ export class TeamResolver {
     }
 
     @Query(() => [Team], {description: "Get Teams!"})
-    teams() {
-        return Team.find({relations: ['users', 'users.user']})
+    teams(@Arg('offset', {defaultValue: 0}) offset: number, @Arg('limit', {defaultValue: 6}) limit: number) {
+        return Team.find({relations: ['users', 'users.user'], take: limit, skip: offset})
     }
 
     @Query(() => Team, {nullable: true, description: "Get One Team by team id param"})
