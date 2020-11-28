@@ -52,7 +52,6 @@ class App {
         const schema = await buildSchema({
             resolvers: [__dirname + "/resolvers/**/*.{ts,js}"],
             authChecker,
-            validate: false
         });
         return new ApolloServer({
             schema,

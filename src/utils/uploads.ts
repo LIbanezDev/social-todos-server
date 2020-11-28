@@ -24,7 +24,7 @@ export async function uploadFile(imagePromise: Upload | undefined, folder: strin
     }
     const image = await imagePromise
     return new Promise((resolve) => {
-        const fileName = `${folder}/${image.filename.replace(/ /g, "_")}`
+        const fileName = `${folder}/${new Date().getTime()}`
         image.createReadStream()
             .pipe(
                 bucket.file(fileName).createWriteStream({

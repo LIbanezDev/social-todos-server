@@ -9,6 +9,8 @@ export class MutationError {
     msg!: string
 }
 
+
+
 @InterfaceType()
 export class IMutationResponse {
     @Field()
@@ -17,6 +19,6 @@ export class IMutationResponse {
     @Field({nullable: true})
     msg?: string;
 
-    @Field(() => [MutationError],{nullable: true})
+    @Field(() => [MutationError], {nullable: true})
     errors?: MutationError[]
 }

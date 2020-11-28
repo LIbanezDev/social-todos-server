@@ -1,6 +1,11 @@
 import {User} from "../../entity/User";
 import {Arg, Ctx, FieldResolver, Query, Resolver, Root} from "type-graphql";
 import {Context} from "../../types/graphql";
+import faker from 'faker'
+import {getEncryptedCredentials} from "../../utils/auth";
+import {UserPaginatedResponse} from "../../entity/responses/UserResponse";
+import {PaginateInput} from "../../entity/input/PaginateInput";
+import {Team} from "../../entity/Team";
 
 @Resolver(User)
 export class UserResolver {
@@ -10,6 +15,32 @@ export class UserResolver {
         let diff = (Date.now() - user.bornDate.getTime()) / 1000;
         diff /= (60 * 60 * 24);
         return Math.abs(Math.trunc(diff / 365.25));
+    }
+
+    @Query(() => Boolean)
+    async seed() {
+        const users: User[] = []
+        const teams : Team[] = []
+        for(let i = 0; i < 30; i++) {
+            const {password, salt} = getEncryptedCredentials('123456')
+            teams.push(Team.create( {
+                name: faker.company.companyName(),
+                description: faker.lorem.text(),
+                password,
+                salt,
+                image: 'https://picsum.photos/200/300'
+            }))
+            users.push(User.create({
+                name: faker.name.findName(),
+                email: faker.internet.email(),
+                password,
+                salt,
+                bornDate: faker.date.past(19),
+                image: 'https://picsum.photos/200/300'
+            }))
+        }
+        await Promise.all([User.save(users), Team.save(teams)])
+        return true
     }
 
     @Query(() => User, {nullable: true, description: "Get user by id. If you want to see your own info set id = -1"})
@@ -34,13 +65,25 @@ export class UserResolver {
         return {...user, friends}
     }
 
-    @Query(() => [User])
-    async users(@Ctx() ctx: Context): Promise<User[]> {
-        return User.createQueryBuilder('user')
+    @Query(() => UserPaginatedResponse)
+    async users(@Ctx() ctx: Context, @Arg('data') paginateInput: PaginateInput): Promise<UserPaginatedResponse> {
+        const {cursor, pageSize} = paginateInput
+        const newLimit = pageSize + 1
+        const users = await User.createQueryBuilder('user')
+            .where('user.email > :cursor', {cursor: cursor !== null ? cursor : ''})
+            .orderBy('user.email')
             .leftJoinAndSelect('user.teams', 'teams')
             .leftJoinAndSelect('teams.team', 'team')
             .leftJoinAndSelect('user.sentMessages', 'sentMessage')
             .leftJoinAndSelect('user.receivedMessages', 'receivedMessage')
+            .limit(newLimit)
             .getMany()
+        let hasMore: boolean = true;
+        if (users.length < newLimit) hasMore = false
+        return {
+            hasMore,
+            cursor: users[users.length - 1].email,
+            items: users.slice(0, newLimit - 1)
+        }
     }
 }

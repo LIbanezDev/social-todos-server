@@ -3,9 +3,10 @@ import {Team} from "../entity/Team";
 import {CreateTeamInput, JoinTeamInput} from "../entity/input/TeamInput";
 import {UserToTeam} from "../entity/UserToTeam";
 import {AuthContext} from "../types/graphql";
-import {TeamResponse} from "../entity/responses/TeamResponse";
+import {TeamPaginatedResponse, TeamResponse} from "../entity/responses/TeamResponse";
 import {uploadFile} from "../utils/uploads";
 import {getEncryptedCredentials, verifyPassword} from "../utils/auth";
+import {PaginateInput} from "../entity/input/PaginateInput";
 
 
 @Resolver(Team)
@@ -21,6 +22,25 @@ export class TeamResolver {
         return Team.find({relations: ['users', 'users.user'], take: limit, skip: offset})
     }
 
+    @Query(() => TeamPaginatedResponse, {description: "Get paginated using cursor"})
+    async teamsPaginated(@Arg('data') paginateInput: PaginateInput) : Promise<TeamPaginatedResponse>
+    {
+        const {pageSize, cursor} = paginateInput
+        const newLimit = pageSize + 1;
+        const teams = await Team.createQueryBuilder('team')
+            .where('team.name > :cursor', {cursor: cursor !== null ? cursor : ''})
+            .orderBy('team.name')
+            .limit(newLimit)
+            .getMany();
+        let hasMore: boolean = true;
+        if (teams.length < newLimit) hasMore = false;
+        return {
+            hasMore,
+            cursor: teams[teams.length - 1].name,
+            items: teams.slice(0, newLimit - 1)
+        }
+    }
+
     @Query(() => Team, {nullable: true, description: "Get One Team by team id param"})
     async team(@Arg('id') id: number): Promise<Team | null> {
         return await Team.findOne({where: {id}, relations: ['users', 'users.user']}) || null
@@ -32,18 +52,26 @@ export class TeamResolver {
         @Arg('data') data: JoinTeamInput, @Ctx() ctx: AuthContext): Promise<TeamResponse> {
         try {
             const userExist = await UserToTeam.findOne({where: {teamId: data.id, userId: ctx.user.id}})
-            if (userExist) return {ok: false, msg: "Ya eres parte del equipo!", errors: [{path: "id", msg: "Duplicado"}]}
+            if (userExist) return {
+                ok: false,
+                msg: "Ya eres parte del equipo!",
+                errors: [{path: "id", msg: "Duplicado"}]
+            }
             const team = await Team.findOne({where: {id: data.id}})
             if (!team) return {ok: false, msg: "El equipo no existe!", errors: [{path: "id", msg: "No existe"}]}
             if (team.password && team.salt) {
-                if (!data.password) return {ok: false, msg: "Debe ingresar contraseña!", errors:[{path: "password", msg: "Vacio."}]}
+                if (!data.password) return {
+                    ok: false,
+                    msg: "Debe ingresar contraseña!",
+                    errors: [{path: "password", msg: "Vacio."}]
+                }
                 const isValid = verifyPassword({
                     inputPassword: data.password,
                     salt: team.salt,
                     encryptedPassword: team.password
                 })
                 if (!isValid) {
-                    return {ok: false, msg: "Contraseña incorrecta!", errors:[{path: "password", msg: "No coincide."}]}
+                    return {ok: false, msg: "Contraseña incorrecta!", errors: [{path: "password", msg: "No coincide."}]}
                 }
             }
             await UserToTeam.create({userId: ctx.user.id, teamId: data.id, userIsAdmin: false}).save()
