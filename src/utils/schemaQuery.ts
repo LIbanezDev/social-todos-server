@@ -1,5 +1,3 @@
-
-
 export const schemaQuery = `
     {
         __schema {
@@ -27,4 +25,4 @@ export const schemaQuery = `
             }
         }
     }
-`
+`;

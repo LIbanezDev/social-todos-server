@@ -1,24 +1,24 @@
-import {Request} from "express";
-import {Stream} from "stream";
+import { Request } from 'express';
+import { Stream } from 'stream';
 
 export interface AuthUser {
-    id: number;
-    name: string;
-    roles: string[];
+	id: number;
+	name: string;
+	roles: string[];
 }
 
 export interface Context {
-    req: Request,
-    user: AuthUser | null
+	req: Request;
+	user: AuthUser | null;
 }
 
 export interface AuthContext extends Context {
-    user: AuthUser
+	user: AuthUser;
 }
 
 export interface Upload {
-    filename: string;
-    mimetype: string;
-    encoding: string;
-    createReadStream: () => Stream;
+	filename: string;
+	mimetype: string;
+	encoding: string;
+	createReadStream: () => Stream;
 }
