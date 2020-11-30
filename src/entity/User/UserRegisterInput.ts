@@ -21,6 +21,9 @@ export class UserRegisterInput {
 	@Field({ nullable: false })
 	email!: string;
 
+	@Field(() => String, {nullable: true, defaultValue: true})
+	description!: string | null
+
 	@Field({ nullable: true })
 	password!: string;
 

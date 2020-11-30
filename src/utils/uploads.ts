@@ -4,10 +4,10 @@ import { JWTInput } from 'google-auth-library';
 
 const gcpCredentials = process.env.CREDS;
 
-if (!gcpCredentials) {
+/*if (!gcpCredentials) {
 	throw new Error('CREDS NOT DEFINED');
-}
-const keys: JWTInput = JSON.parse(gcpCredentials);
+}*/
+const keys: JWTInput = JSON.parse(gcpCredentials || '{}');
 
 const storageOptions: StorageOptions = {
 	projectId: keys.project_id,

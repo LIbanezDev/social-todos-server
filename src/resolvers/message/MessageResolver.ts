@@ -16,12 +16,13 @@ export class MessageResolver {
 		@Arg('message') message: string
 	): Promise<MessageResponse> {
 		const messageReceiver = await User.findOne(to);
-		if (!messageReceiver)
+		if (!messageReceiver) {
 			return {
 				ok: false,
 				msg: 'Receptor invalido!',
-				errors: [{ msg: 'No existe', path: 'to' }],
+				errors: [{msg: 'No existe', path: 'to'}],
 			};
+		}
 		const sender = await User.findOneOrFail(ctx.user.id);
 		const newMessageDB = await Message.create({
 			sender,

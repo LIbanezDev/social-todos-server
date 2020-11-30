@@ -3,7 +3,7 @@ import { ManyToOne } from 'typeorm/index';
 import { User } from '../User/User';
 import { Field, ID, ObjectType } from 'type-graphql';
 
-@ObjectType({ description: 'Solicitudes de amistad entre usuarios' })
+@ObjectType({ description: 'Amistad entre usuarios' })
 @Entity({ name: 'friends' })
 export class FriendRequest extends BaseEntity {
 	@Field(() => ID)
@@ -20,11 +20,11 @@ export class FriendRequest extends BaseEntity {
 	@Column({ default: false })
 	friendshipState!: boolean;
 
-	@Field()
+	@Field(() => User)
 	@ManyToOne(() => User, user => user.sentFriendRequests)
 	sender!: User;
 
-	@Field()
+	@Field(() => User)
 	@ManyToOne(() => User, user => user.receivedFriendRequests)
 	receiver!: User;
 }

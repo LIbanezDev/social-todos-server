@@ -1,15 +1,15 @@
 import 'reflect-metadata';
-import { config } from 'dotenv';
+import {config} from 'dotenv';
 import express from 'express';
 import bodyParser from 'body-parser';
-import { createConnection } from 'typeorm';
-import { buildSchema, ForbiddenError } from 'type-graphql';
+import {buildSchema, ForbiddenError} from 'type-graphql';
 import * as http from 'http';
 import fetch from 'node-fetch';
-import { ApolloServer } from 'apollo-server-express';
-import { authChecker, tokenChecker } from './utils/auth';
-import { schemaQuery } from './utils/schemaQuery';
+import {ApolloServer} from 'apollo-server-express';
+import {authChecker, tokenChecker} from './utils/auth';
+import {schemaQuery} from './utils/schemaQuery';
 import cors from 'cors';
+import Database from "./config/Database";
 
 config();
 
@@ -53,7 +53,7 @@ class App {
 		});
 	}
 
-	private async getApolloGraphServer(): Promise<ApolloServer> {
+	public async getApolloGraphServer(): Promise<ApolloServer> {
 		const schema = await buildSchema({
 			resolvers: [__dirname + '/resolvers/**/*.{ts,js}'],
 			authChecker,
@@ -73,7 +73,7 @@ class App {
 	}
 
 	public async start(): Promise<void> {
-		await createConnection();
+		await Database.createConnection();
 		this.setParserAndCors();
 		this.setIndexRoute();
 		const apolloServer = await this.getApolloGraphServer();
@@ -89,3 +89,5 @@ class App {
 
 const app = new App();
 app.start();
+
+export default App

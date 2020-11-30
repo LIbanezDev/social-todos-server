@@ -25,7 +25,7 @@ export class TeamResolver {
 	}
 
 	@Query(() => TeamPaginatedResponse, {
-		description: 'Get paginated using cursor',
+		description: 'Get paginated teams',
 	})
 	async teamsPaginated(@Arg('data') paginateInput: TeamPaginatedInput): Promise<TeamPaginatedResponse> {
 		const { pageSize, cursor } = paginateInput;
@@ -45,11 +45,10 @@ export class TeamResolver {
 
 		let hasMore: boolean = true;
 		if (teams.length < newLimit) hasMore = false;
-		console.log(teams)
 		return {
 			hasMore,
 			cursor: teams.length > 0 ? teams[teams.length - 1].name : null,
-			items: teams.slice(0, teams.length - 2),
+			items: hasMore ? teams.slice(0, teams.length - 1) : teams,
 		};
 	}
 
@@ -87,12 +86,13 @@ export class TeamResolver {
 					errors: [{ path: 'id', msg: 'No existe' }],
 				};
 			if (team.password && team.salt) {
-				if (!data.password)
+				if (!data.password) {
 					return {
 						ok: false,
 						msg: 'Debe ingresar contraseña!',
 						errors: [{ path: 'password', msg: 'Vacio.' }],
 					};
+				}
 				const isValid = verifyPassword({
 					inputPassword: data.password,
 					salt: team.salt,

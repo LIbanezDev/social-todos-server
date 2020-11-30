@@ -4,17 +4,20 @@ import { Context } from '../../types/graphql';
 import faker from 'faker';
 import { getEncryptedCredentials } from '../../utils/auth';
 import { UserPaginatedResponse } from '../../entity/User/UserResponse';
-
 import { Team } from '../../entity/Team/Team';
 import { PaginateInput } from '../../entity/Shared/IPaginatedResponse';
+
+export const calculateAge = (miliseconds: number) => {
+	let diff = (Date.now() - miliseconds) / 1000;
+	diff /= 60 * 60 * 24;
+	return Math.abs(Math.trunc(diff / 365.25));
+}
 
 @Resolver(User)
 export class UserResolver {
 	@FieldResolver()
 	age(@Root() user: User) {
-		let diff = (Date.now() - user.bornDate.getTime()) / 1000;
-		diff /= 60 * 60 * 24;
-		return Math.abs(Math.trunc(diff / 365.25));
+		return calculateAge(user.bornDate.getTime())
 	}
 
 	@Query(() => Boolean)
