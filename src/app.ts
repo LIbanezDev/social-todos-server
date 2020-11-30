@@ -2,14 +2,14 @@ import 'reflect-metadata';
 import {config} from 'dotenv';
 import express from 'express';
 import bodyParser from 'body-parser';
-import {buildSchema, ForbiddenError} from 'type-graphql';
+import {ForbiddenError} from 'type-graphql';
 import * as http from 'http';
 import fetch from 'node-fetch';
 import {ApolloServer} from 'apollo-server-express';
-import {authChecker, tokenChecker} from './utils/auth';
-import {schemaQuery} from './utils/schemaQuery';
+import {tokenChecker} from './utils/auth';
+import {createSchema, schemaQuery} from './utils/schema';
 import cors from 'cors';
-import Database from "./config/Database";
+import Database from './config/Database';
 
 config();
 
@@ -54,10 +54,7 @@ class App {
 	}
 
 	public async getApolloGraphServer(): Promise<ApolloServer> {
-		const schema = await buildSchema({
-			resolvers: [__dirname + '/resolvers/**/*.{ts,js}'],
-			authChecker,
-		});
+		const schema = await createSchema();
 		return new ApolloServer({
 			schema,
 			introspection: true,
@@ -90,4 +87,4 @@ class App {
 const app = new App();
 app.start();
 
-export default App
+export default App;

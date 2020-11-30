@@ -1,4 +1,4 @@
-import { Arg, Mutation, Resolver } from 'type-graphql';
+import {Arg, Ctx, Mutation, Resolver} from 'type-graphql';
 import { User } from '../../../entity/User/User';
 import { LoginResponse, UserResponse } from '../../../entity/User/UserResponse';
 import { SocialRegisterInput, UserRegisterInput } from '../../../entity/User/UserRegisterInput';
@@ -10,7 +10,7 @@ import jwt from 'jsonwebtoken';
 @Resolver(User)
 export class AuthResolver {
 	@Mutation(() => UserResponse)
-	async register(@Arg('data') data: UserRegisterInput): Promise<UserResponse> {
+	async register(@Arg('data') data: UserRegisterInput, @Ctx() c: any): Promise<UserResponse> {
 		try {
 			const userRegistered = await User.findOne({
 				where: { email: data.email },
@@ -29,12 +29,13 @@ export class AuthResolver {
 			const user = await User.create({
 				...data,
 				password,
+				description: data.description || '',
 				salt,
 				image: imageURL,
 			}).save();
 			return { ok: true, msg: 'Registrado satisfactoriamente!', user };
 		} catch (e: unknown) {
-			return { ok: false, msg: 'Error interno, intente mas tarde' };
+			return { ok: false, msg: JSON.stringify(e) };
 		}
 	}
 
