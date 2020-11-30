@@ -49,10 +49,10 @@
 		"validator": "^13.1.17",
 		"@types/jest": "^26.0.15",
 		"jest": "^26.6.3",
-		"apollo-server-testing": "^2.19.0"
+		"apollo-server-testing": "^2.19.0",
+		"ts-jest": "^26.4.4"
 	},
 	"devDependencies": {
-		"ts-jest": "^26.4.4",
 		"prettier": "2.2.1",
 		"type-coverage": "^2.14.5"
 	}
