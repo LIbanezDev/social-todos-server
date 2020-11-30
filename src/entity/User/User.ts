@@ -22,7 +22,7 @@ export class User extends BaseEntity {
 	@Column()
 	bornDate!: Date;
 
-	@Field()
+	@Field(() => String)
 	@Column({ default: '', length: 500 })
 	description!: string;
 

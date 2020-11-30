@@ -28,6 +28,7 @@ export class AuthResolver {
 			const imageURL = await uploadFileToGCP(data.image, 'users');
 			const user = await User.create({
 				...data,
+				description: data.description || '',
 				password,
 				description: data.description || '',
 				salt,
