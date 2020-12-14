@@ -1,3 +1,7 @@
+import {GraphQLSchema} from "graphql";
+import {buildSchema} from "type-graphql";
+import {authChecker} from "./auth";
+
 export const schemaQuery = `
     {
         __schema {
@@ -26,3 +30,11 @@ export const schemaQuery = `
         }
     }
 `;
+
+export const createSchema = async (): Promise<GraphQLSchema> => {
+    return buildSchema({
+        resolvers: [__dirname + '/../resolvers/**/*.{ts,js}'],
+        authChecker,
+        validate: false,
+    });
+};

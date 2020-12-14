@@ -1,7 +1,7 @@
 import { Authorized, createUnionType, Resolver, ResolverFilterData, Root, Subscription } from 'type-graphql';
 import { Message } from '../../entity/Message/Message';
 import { FriendRequest } from '../../entity/FriendRequest/FriendRequest';
-import { AuthContext } from '../../types/graphql';
+import { AuthContext } from '../../types/types';
 
 export enum NOTIFICATIONS_TOPIC {
 	NEW_MESSAGE = 'NM',

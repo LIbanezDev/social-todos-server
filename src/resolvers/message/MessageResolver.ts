@@ -1,6 +1,6 @@
 import { Arg, Authorized, Ctx, Int, Mutation, PubSub, PubSubEngine, Query, Resolver } from 'type-graphql';
 import { Message } from '../../entity/Message/Message';
-import { AuthContext, Context } from '../../types/graphql';
+import { AuthContext, Context } from '../../types/types';
 import { User } from '../../entity/User/User';
 import { MessageResponse } from '../../entity/Message/MessageResponse';
 import { NOTIFICATIONS_TOPIC } from '../notifications/NotificationResolver';

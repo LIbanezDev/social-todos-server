@@ -1,6 +1,6 @@
 import { Field, InputType } from 'type-graphql';
 import { GraphQLUpload } from 'apollo-server-express';
-import { Upload } from '../../types/graphql';
+import { Upload } from '../../types/types';
 import { registerEnumType } from 'type-graphql';
 
 export enum AUTH_APPS {
