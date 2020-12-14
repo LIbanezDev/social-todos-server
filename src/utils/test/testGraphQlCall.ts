@@ -4,7 +4,7 @@ import {createSchema} from '../schema';
 import {graphql, GraphQLSchema} from 'graphql';
 import {Maybe} from 'type-graphql';
 import {config} from 'dotenv';
-import {AuthUser} from "../../types/graphql";
+import {AuthUser} from "../../types/types";
 import faker from 'faker'
 
 config();

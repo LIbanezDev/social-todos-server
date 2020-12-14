@@ -2,7 +2,7 @@ import { Arg, Authorized, Ctx, FieldResolver, Mutation, Query, Resolver, Root } 
 import { Team } from '../../entity/Team/Team';
 import { CreateTeamInput, JoinTeamInput } from '../../entity/Team/TeamInput';
 import { UserToTeam } from '../../entity/User/UserToTeam';
-import { AuthContext } from '../../types/graphql';
+import { AuthContext } from '../../types/types';
 import { TeamPaginatedResponse, TeamResponse } from '../../entity/Team/TeamResponse';
 import { uploadFileToGCP } from '../../utils/uploads';
 import { getEncryptedCredentials, verifyPassword } from '../../utils/auth';

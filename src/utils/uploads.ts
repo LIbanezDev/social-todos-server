@@ -1,12 +1,13 @@
 import { Storage, StorageOptions } from '@google-cloud/storage';
-import { Upload } from '../types/graphql';
+import { Upload } from '../types/types';
 import { JWTInput } from 'google-auth-library';
 
 const gcpCredentials = process.env.CREDS;
 
-/*if (!gcpCredentials) {
-	throw new Error('CREDS NOT DEFINED');
-}*/
+if (!gcpCredentials) {
+	throw new Error('Google creds: process.env.CREDS not defined');
+}
+
 const keys: JWTInput = JSON.parse(gcpCredentials || '{}');
 
 const storageOptions: StorageOptions = {

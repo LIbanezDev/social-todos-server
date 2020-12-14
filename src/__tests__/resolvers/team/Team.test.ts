@@ -141,7 +141,7 @@ describe('CRUD Teams', () => {
 		expect(dataFindOne?.team.users[0].userIsAdmin).toBeTruthy();
 	});
 
-	test('should create DB with 30 teams and 30 users', async () => {
+	test('should create 30 teams and 30 users', async () => {
 		const { data: dataSeed } = await graphCall({
 			source: seedDB,
 		});

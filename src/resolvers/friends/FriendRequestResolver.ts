@@ -1,7 +1,7 @@
 import { User } from '../../entity/User/User';
 import { Arg, Authorized, Ctx, Mutation, PubSub, PubSubEngine, Query, Resolver } from 'type-graphql';
 import { UserResponse } from '../../entity/User/UserResponse';
-import { AuthContext } from '../../types/graphql';
+import { AuthContext } from '../../types/types';
 import { FriendRequest } from '../../entity/FriendRequest/FriendRequest';
 import { NOTIFICATIONS_TOPIC } from '../notifications/NotificationResolver';
 
@@ -48,10 +48,10 @@ export class FriendRequestResolver {
 
 	@Authorized()
 	@Query(() => [FriendRequest])
-	async myFriendRequests(@Ctx() ctx: AuthContext) {
+	async myFriends(@Ctx() ctx: AuthContext) {
 		return FriendRequest.find({
 			relations: ['sender'],
-			where: { receiverId: ctx.user.id },
+			where: { receiverId: ctx.user.id, friendshipState: true },
 		});
 	}
 
@@ -59,10 +59,7 @@ export class FriendRequestResolver {
 	@Query(() => [FriendRequest])
 	async myPendientFriendRequests(@Ctx() ctx: AuthContext): Promise<FriendRequest[]> {
 		return FriendRequest.find({
-			where: {
-				senderId: ctx.user.id,
-				friendshipState: false,
-			},
+			where: { senderId: ctx.user.id, friendshipState: false },
 			relations: ['receiver'],
 		});
 	}
@@ -75,9 +72,7 @@ export class FriendRequestResolver {
 		@Arg('accept') accept: boolean
 	): Promise<boolean> {
 		try {
-			const friendRequest = await FriendRequest.findOne({
-				where: { id: requestId },
-			});
+			const friendRequest = await FriendRequest.findOne({ where: { id: requestId } });
 			if (!friendRequest) return false;
 			if (accept) {
 				friendRequest.friendshipState = true;

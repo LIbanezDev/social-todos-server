@@ -1,10 +1,10 @@
-import {Arg, Ctx, Mutation, Resolver} from 'type-graphql';
+import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { User } from '../../../entity/User/User';
 import { LoginResponse, UserResponse } from '../../../entity/User/UserResponse';
-import { SocialRegisterInput, UserRegisterInput } from '../../../entity/User/UserRegisterInput';
+import { AUTH_APPS, SocialRegisterInput, UserRegisterInput } from '../../../entity/User/UserRegisterInput';
 import { getEncryptedCredentials, getSocialUser, validateRegister, verifyPassword } from '../../../utils/auth';
 import { uploadFileToGCP } from '../../../utils/uploads';
-import { AuthUser } from '../../../types/graphql';
+import { AuthUser } from '../../../types/types';
 import jwt from 'jsonwebtoken';
 
 @Resolver(User)
@@ -30,7 +30,6 @@ export class AuthResolver {
 				...data,
 				description: data.description || '',
 				password,
-				description: data.description || '',
 				salt,
 				image: imageURL,
 			}).save();
@@ -43,7 +42,7 @@ export class AuthResolver {
 	@Mutation(() => LoginResponse)
 	async login(@Arg('email') email: string, @Arg('password') pass: string): Promise<LoginResponse> {
 		try {
-			const loginFailed = {
+			const loginFailed: LoginResponse = {
 				ok: false,
 				msg: 'Usuario o contrasena incorrectos',
 				errors: [{ path: 'password y/o email', msg: 'No validas' }],
@@ -75,7 +74,7 @@ export class AuthResolver {
 			return {
 				ok: true,
 				token,
-				msg: 'Login exitoso, el token de acceso ha sido concedido.',
+				msg: 'Bienvenido a social todos.',
 				user: userDB,
 			};
 		} catch (e: unknown) {
@@ -108,13 +107,13 @@ export class AuthResolver {
 				};
 			}
 		} else {
-			const credentials = getEncryptedCredentials('_', true);
-			const user = await User.save(
-				Object.assign(new User(), {
-					...newUser,
-					...credentials,
-				})
-			);
+			let socialCredentials: { password: string; salt: string };
+			if (data.type === AUTH_APPS.Google) {
+				socialCredentials = getEncryptedCredentials('_', AUTH_APPS.Google);
+			} else {
+				socialCredentials = getEncryptedCredentials('_', AUTH_APPS.GitHub);
+			}
+			const user = await User.create({ ...newUser, ...socialCredentials }).save();
 			payload = {
 				id: user.id,
 				name: user.name,

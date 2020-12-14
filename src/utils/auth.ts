@@ -1,15 +1,15 @@
 import validator from 'validator';
-import { AUTH_APPS, UserRegisterInput } from '../entity/User/UserRegisterInput';
+import {AUTH_APPS, UserRegisterInput} from '../entity/User/UserRegisterInput';
 import crypto from 'crypto';
-import { MutationError } from '../entity/Shared/IMutationResponse';
-import { User } from '../entity/User/User';
+import {MutationError} from '../entity/Shared/IMutationResponse';
+import {User} from '../entity/User/User';
 import fetch from 'node-fetch';
-import { OAuth2Client } from 'google-auth-library';
-import { ExpressContext } from 'apollo-server-express/dist/ApolloServer';
-import { AuthUser, Context } from '../types/graphql';
-import { ExecutionParams } from 'subscriptions-transport-ws';
+import {OAuth2Client} from 'google-auth-library';
+import {ExpressContext} from 'apollo-server-express/dist/ApolloServer';
+import {AuthUser, Context} from '../types/types';
+import {ExecutionParams} from 'subscriptions-transport-ws';
 import jwt from 'jsonwebtoken';
-import { AuthChecker } from 'type-graphql';
+import {AuthChecker} from 'type-graphql';
 
 export const validateRegister = (data: UserRegisterInput): MutationError[] => {
 	const errors: MutationError[] = [];
@@ -31,14 +31,14 @@ export const validateRegister = (data: UserRegisterInput): MutationError[] => {
 	return errors;
 };
 
-export const getEncryptedCredentials = (password: string, github = false, google = false): { password: string; salt: string } => {
+export const getEncryptedCredentials = (password: string, authApp?: AUTH_APPS): { password: string; salt: string } => {
 	const salt = crypto.randomBytes(16).toString('base64');
 	let finalPass = password;
 	if (!process.env.GOOGLE_PASS || !process.env.GITHUB_PASS) {
-		throw new Error('Variables de entorno google pass y github pass no definidas...');
+		throw new Error('Variables de entorno process.env.GITHUB_PASS o process.env.GOOGLE_PASS no definidas...');
 	}
-	if (github) finalPass = process.env.GITHUB_PASS;
-	if (google) finalPass = process.env.GOOGLE_PASS;
+	if (authApp == AUTH_APPS.GitHub) finalPass = process.env.GITHUB_PASS;
+	if (authApp == AUTH_APPS.Google) finalPass = process.env.GOOGLE_PASS;
 	const encryptedPassword = crypto.pbkdf2Sync(finalPass, salt, 10000, 64, 'sha1').toString('base64');
 	return { salt, password: encryptedPassword };
 };
@@ -119,7 +119,7 @@ export const tokenChecker = (context: ExpressContext): Context => {
 	};
 };
 
-// Auth checker for @Authorized() typegraphql feature
+// Auth checker for @Authorized() typegraphql decorator
 export const authChecker: AuthChecker<Context> = ({ context: { req, user } }, roles) => {
 	if (!user) {
 		return false;

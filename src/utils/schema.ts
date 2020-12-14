@@ -38,11 +38,3 @@ export const createSchema = async (): Promise<GraphQLSchema> => {
         validate: false,
     });
 };
-
-/*
-context: (ctx): ExpressContext | AuthContext => {
-	if (!authContext) {
-		return ctx;
-	}
-	return { req: ctx.req, user: {id: 1, ...customUserData, roles: ['ADMIN']} };
-},*/

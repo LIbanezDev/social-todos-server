@@ -1,6 +1,6 @@
 import { User } from '../../entity/User/User';
 import { Arg, Ctx, FieldResolver, Query, Resolver, Root } from 'type-graphql';
-import { Context } from '../../types/graphql';
+import { Context } from '../../types/types';
 import faker from 'faker';
 import { getEncryptedCredentials } from '../../utils/auth';
 import { UserPaginatedResponse } from '../../entity/User/UserResponse';
