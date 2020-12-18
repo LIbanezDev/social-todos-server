@@ -92,8 +92,8 @@ export class UserResolver {
 		if (users.length < newLimit) hasMore = false;
 		return {
 			hasMore,
-			cursor: users[users.length - 1].email,
-			items: users.slice(0, newLimit - 1),
+			cursor: users.length > 0 ? users[users.length - 1].name : null,
+			items: hasMore ? users.slice(0, users.length - 1) : users,
 		};
 	}
 }
